@@ -12,7 +12,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>main.cpp</itemPath>
+      <itemPath>client.cpp</itemPath>
+      <itemPath>server.cpp</itemPath>
+      <itemPath>test.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -37,7 +39,11 @@
       </toolsSet>
       <compileType>
       </compileType>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      <item path="client.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="server.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -61,7 +67,11 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      <item path="client.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="server.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

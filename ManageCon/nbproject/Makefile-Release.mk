@@ -35,6 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/377180152/Client.o \
+	${OBJECTDIR}/_ext/377180152/Input.o \
+	${OBJECTDIR}/_ext/207716480/Input.o \
+	${OBJECTDIR}/_ext/207716480/Server.o \
 	${OBJECTDIR}/client.o \
 	${OBJECTDIR}/server.o \
 	${OBJECTDIR}/test.o
@@ -63,6 +67,26 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/managecon.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/managecon ${OBJECTFILES} ${LDLIBSOPTIONS}
+
+${OBJECTDIR}/_ext/377180152/Client.o: ../../../Desktop/Online_Test/Client_Side/Client.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/377180152
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/377180152/Client.o ../../../Desktop/Online_Test/Client_Side/Client.cpp
+
+${OBJECTDIR}/_ext/377180152/Input.o: ../../../Desktop/Online_Test/Client_Side/Input.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/377180152
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/377180152/Input.o ../../../Desktop/Online_Test/Client_Side/Input.cpp
+
+${OBJECTDIR}/_ext/207716480/Input.o: ../../../Desktop/Online_Test/Server_Side/Input.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/207716480
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/207716480/Input.o ../../../Desktop/Online_Test/Server_Side/Input.cpp
+
+${OBJECTDIR}/_ext/207716480/Server.o: ../../../Desktop/Online_Test/Server_Side/Server.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/207716480
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/207716480/Server.o ../../../Desktop/Online_Test/Server_Side/Server.cpp
 
 ${OBJECTDIR}/client.o: client.cpp 
 	${MKDIR} -p ${OBJECTDIR}

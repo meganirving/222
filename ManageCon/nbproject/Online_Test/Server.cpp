@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <list>
+#include "sharedglobals.h"
 
 std::string check_User(std::string, std::string);
 int get_User_Count();
@@ -21,7 +22,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1337) != sf::Socket::Done)
+	if (listener.listen(1339) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -37,6 +38,7 @@ int main()
 	
 		//Setup info being sent through packet
 	std::string ID;							// unique ID for server reference 
+	PacketType Ptype;						// Packet type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
 	std::string input;						// input command (server needs to know aswell)
@@ -87,22 +89,31 @@ int main()
 						
 							// Receive packet from client
 						sf::Packet loginPacket;
-						
+						sf::Packet serverReply;
 							//basically a file.good() function for sockets
 						if(client.receive(loginPacket) == sf::Socket::Done)
 						{
 								// Extract the variables contained in the packet
-							if (loginPacket >> ID >> username >> password >> input >> userlevel)
+							
+							loginPacket >> ID >> Ptype;
+							
+							std::cout << ID << " " << Ptype << std::endl;
+							switch(Ptype)
 							{
-								if(input == "L")
-								{
+								case 0: 
+									loginPacket >> username >> password;
+									std::cout << ID <<  " LOGIN REQUEST: " << username << ", " << password << std::endl; 
 									userlevel = check_User(username, password);
-								}
-								else if(input == "S")
-								{
-										//make sure designated username doesn't already exist
+										// send data to reply packet
+									serverReply << ID << Ptype << userlevel;
+										// send reply
+									client.send(serverReply);
+									break;
+								case 1:
+									loginPacket >> username >> password;
+									std::cout << ID <<  " SIGN-UP REQUEST: " << username << password << std::endl; 
+						//make sure designated username doesn't already exist
 									userlevel = check_User(username, password);
-									
 									if(userlevel == "NON-EXISTING")
 									{
 											//make sure file exists
@@ -122,20 +133,15 @@ int main()
 										}
 										fout.close();
 									}
-										//set it back to null to avoid errors
-									userlevel = "-1";
-								}
-								
-								// data extracted successfully...
-								
-									// set up packet to be sent
-								sf::Packet serverReply;
-							
-									// send data to reply packet
-								serverReply << ID << username << password << input << userlevel;
-
-									// send reply
-								client.send(serverReply);
+									else
+									{
+										userlevel = "-1";
+									}
+										// send data to reply packet
+									serverReply << ID << Ptype << userlevel;
+										// send reply
+									client.send(serverReply);
+									break;
 							}
 						}
 					}

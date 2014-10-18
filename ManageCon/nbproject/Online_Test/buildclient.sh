@@ -1,3 +1,3 @@
 #!/bin/bash
 g++ Client.cpp -c
-g++ Input.cpp -c
+g++ Classes.cpp -c

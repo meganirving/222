@@ -6,6 +6,8 @@
 #include <SFML/Network.hpp>
 #include <SFML/Network/Packet.hpp>
 #include <sstream>
+#include "sharedglobals.h"
+#include "Classes.h"
 
 	//Just a simple GUI function to make sure the mouse is on screen when checking mouse events
 bool in_Window(const sf::Mouse&, const sf::Window&, const sf::Vector2<int>&);
@@ -42,6 +44,7 @@ int main()
 	
 		//packet contents
 	std::string ID = "00000000";			// unique ID for server reference 
+	PacketType Ptype;						// message type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
 	std::string input;						// input command (server needs to know aswell)
@@ -49,7 +52,7 @@ int main()
 
 		//Connect to server using TCP type connection
 	sf::TcpSocket socket;
-	sf::Socket::Status status = socket.connect("localhost", 1337);
+	sf::Socket::Status status = socket.connect("localhost", 1339);
 	if (status != sf::Socket::Done)
 	{
 		 std::cout << "Could not connect to server" << std::endl;
@@ -89,45 +92,22 @@ int main()
 				std::cout << "Enter password: ";
 				std::cin >> password;
 				
+				Ptype = LOGIN;
+				
+				
 					//Create Packet
 				sf::Packet loginPacket;
 				
 					//Send data to packet
-				loginPacket << ID << username << password << input << userlevel;
+				loginPacket << ID << Ptype << username << password;
 				
 					//Send packet to server
 				socket.send(loginPacket);
 				
-					//Create packet to recieve data from server
-				sf::Packet serverReply;
-				
-				if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
-				{
-						//push data from server reply into variables
-					if (serverReply >> ID >> username >> password >> input >> userlevel) 
-					{
-						if(userlevel == "ADMIN" || userlevel == "REVIEWER" || userlevel == "AUTHOR")
-						{
-							signedIn = true;
-						}
-						else if(userlevel == "UNAPPROVED")
-						{
-							std::cout << "Still waiting admin approval" << std::endl;
-						}
-						else if(userlevel == "BAD-PASS")
-						{
-							std::cout << "Invalid password" << std::endl;
-						}
-						else
-						{
-							std::cout << "Non-existing account" << std::endl;
-						}
-					}
-				}
 			}
 			else if(input == "S")
 			{
-					//When signing up make sure username and password are of reasonable length
+	//When signing up make sure username and password are of reasonable length
 				do
 				{
 					std::cout << "Enter username: ";
@@ -150,33 +130,19 @@ int main()
 				}
 				while(password.length() < 5 || password.length() > 20);
 				
+				Ptype = SIGN_UP;
+				
 					//Create Packet
 				sf::Packet loginPacket;
 				
 					//Send data to packet
-				loginPacket << ID << username << password << input << userlevel;
+				loginPacket << ID << Ptype << username << password;
 				
 					//Send packet to server
 				socket.send(loginPacket);
 				
 					//Create packet to recieve data from server
 				sf::Packet serverReply;
-				
-				if(socket.receive(serverReply) == sf::Socket::Done) //check if reply was sent
-				{
-						//push data from server reply into variables
-					if (serverReply >> ID >> username >> password >> input >> userlevel)
-					{
-						if(userlevel == "NON-EXISTING")
-						{
-							std::cout << "Created account now awaiting approval" << std::endl;
-						}
-						else
-						{
-							std::cout << "Account name already exists" << std::endl;
-						}
-					}
-				}
 			}
 			else if(input == "Q")
 			{
@@ -186,12 +152,62 @@ int main()
 			{
 				std::cout << "Invalid Input" << std::endl;
 			}	
+				//Create packet to recieve data from server
+			sf::Packet serverReply;
+			
+			if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+			{
+					//push data from server reply into variables
+				serverReply >> ID >> Ptype;
+				switch(Ptype)
+				{
+					case 0:
+						serverReply >> userlevel;
+						if(userlevel == "ADMIN" || userlevel == "REVIEWER" || userlevel == "AUTHOR")
+						{
+							signedIn = true;
+						}
+						else if(userlevel == "UNAPPROVED")
+						{
+							std::cout << "Still waiting admin approval" << std::endl;
+						}
+						else if(userlevel == "BAD-PASS")
+						{
+							std::cout << "Invalid password" << std::endl;
+						}
+						else
+						{
+							std::cout << "Non-existing account" << std::endl;
+						}
+						break;
+					case 1:
+						serverReply >> userlevel;
+						if(userlevel == "NON-EXISTING")
+						{
+							std::cout << "Created account now awaiting approval" << std::endl;
+						}
+						else
+						{
+							std::cout << "Account name already exists" << std::endl;
+						}
+						break;
+				}
+			}
 		}
-		
+		User* player;
+		if(userlevel == "AUTHOR")
+		{
+			player = new Author(username, password);
+		}
+		else if(userlevel == "REVIEWER")
+		{
+			player = new Reviewer(username, password);
+		}
 			//A user has successfully signed in
-		
 		while(signedIn == true)
 		{
+			player->Display(signedIn, input);
+			/*
 			if(userlevel == "AUTHOR")
 			{
 				std::cout << "_____________________________________" << std::endl;
@@ -242,7 +258,7 @@ int main()
 				{
 					signedIn = false;
 				}
-			}
+			}*/
 		}
 	}
     

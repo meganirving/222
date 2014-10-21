@@ -10,6 +10,11 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <cstring>
+#include <fstream>
+#include <SFML/Network.hpp>
+#include "sharedglobals.h"
 
 struct Notification
 {
@@ -29,14 +34,15 @@ class User
 	public:	
 		User(){}
 		~User(){}
-		//TO UNCOMMENT: virtual void Display(bool&, std::string&, sf::TcpSocket&);
+		 virtual void Display(bool&, std::string&, sf::TcpSocket&){}
+		
 		int unreadNotifs();
 		void notifMenu();
 		void displayNotifs();
 		void addNotif(std::string);
 		std::string getNotif(Notification);
 		void setAllNotifs(std::string, int);
-		bool loadNotifs();
+		void loadNotifs(sf::TcpSocket& socket);
 		void saveNotifs();
 		
 		void setUsername(std::string name) { username = name; }
@@ -46,5 +52,4 @@ class User
 		void sendNotif(std::string username, std::string msg);
 };
 
-#endif	/* USER_H */
-
+#endif

@@ -3,7 +3,7 @@
 #include <sstream>  
 #include <string>
 #include <cstdlib>
-#include "user.h"
+#include "User.h"
 
 // adds a new notification to the user
 void User::addNotif(std::string msg)
@@ -112,6 +112,7 @@ void User::displayNotifs()
 // turns a notif into a string
 std::string User::getNotif(Notification notif)
 {
+	
 	std::stringstream temp;
 	temp << notif.message;
 	temp << ",";
@@ -144,44 +145,37 @@ void User::saveNotifs()
 	ofile.close();
 }
 
-// loads notifs from a text file
-bool User::loadNotifs()
+void User::loadNotifs(sf::TcpSocket& socket)
 {
-	// get the filename
-	std::string fname = username;
-	fname.append("_notifs.txt");
+	// send username to server
+	PacketType pType = GET_NOTIFICATION;
+	sf::Packet packet;
+	packet << id << pType << username;
+	socket.send(packet);
 	
-	// open the file
-	std::ifstream ifile;
-	ifile.open(fname.c_str(), std::ifstream::in);
-	
-	// if it's open
-	if (ifile.is_open())
+	// get info back from server
+	std::string notifs;
+	int count;
+	sf::Packet serverReply;
+	if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
 	{
-		std::string notifs = "";
-		std::string next = "";
-		int count = 0;
-	
-		// check it's good
-		while (!ifile.eof())
-		{
-			// get the next line and add a delim
-			
-			std::getline(ifile, next);
-			notifs.append(next);
-			notifs.append("~");
-			count++;
-		}
-		count--;
+			//push data from server reply into variables
+		serverReply >> pType;
 		
-		// get the result
-		setAllNotifs(notifs, count);
-		return true;
+		if(pType == GET_NOTIFICATION)
+		{
+			serverReply >> count >> notifs;
+			
+			std::cout << "GOT: " << count << " " << notifs << std::endl;
+		}
+		else
+		{
+			std::cout << "EXPECTED GET_NOTIFICATION GOT: " << pType << std::endl;
+		}
 	}
-	else
-	{
-		return false;
-	}
+	// get notifs
+	setAllNotifs(notifs, count);
+
 }
 
 void User::setAllNotifs(std::string nots, int count)

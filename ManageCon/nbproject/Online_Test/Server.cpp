@@ -11,6 +11,7 @@
 #include <vector>
 #include "sharedglobals.h"
 
+void loadNotifs(sf::TcpSocket&, sf::Packet&);
 std::string check_User(const std::string&, const std::string&, const std::string&);
 std::string check_File(const std::string&, const std::string&, const std::string&, const std::string&);
 std::string get_Users(int&);
@@ -146,7 +147,7 @@ int main()
 									client.send(serverReply);
 									break;
 								}
-								case 2:
+								case 2:	//GET AMOUNT OF USERS
 								{
 									std::cout << ID <<  " MANAGE USERS REQUEST" << std::endl; 
 									std::string users;
@@ -158,7 +159,7 @@ int main()
 									client.send(serverReply);
 									break;
 								}
-								case 3:
+								case 3:	//ACCEPT USER
 								{
 									std::string userToAccept;
 									std::string tempUser;
@@ -172,6 +173,8 @@ int main()
 									std::ofstream fout;
 									
 									loginPacket >> userToAccept;
+									
+									std::cout << ID <<  " ADD USER REQUEST " << userToAccept << std::endl; 
 									
 									fin.open("Users.txt");
 									while(fin.good())
@@ -190,7 +193,6 @@ int main()
 											fin.getline(tempLine, 256, '\n');
 											tempToAdd = tempLine;
 											userToAccept.append(tempToAdd);
-											std::cout << "USER: " << userToAccept << std::endl;
 											if(tempLevel == "AUTHOR")
 											{
 												
@@ -255,65 +257,49 @@ int main()
 								
 									break;
 								}
-									case 4:
-									{
-										int size = 0, max_size = 0;
-										std::string filename;
-										std::string keywords[5];
-										std::size_t received = 0;
+								case 4:	//SUBMIT PDF FILE
+								{
+									int size = 0, max_size = 0;
+									std::string filename;
+									std::string keywords[5];
+									std::size_t received = 0;
 
-										char *Buffer = new char[4096];
+									char *Buffer = new char[4096];
 
-										loginPacket >> filename >> keywords[0] >> keywords[1] 
-		  									   >> keywords[2] >>keywords[3] 
-		  									   >> keywords[4] >> size;
-	
+									loginPacket >> filename >> keywords[0] >> keywords[1] >> keywords[2] >> keywords[3] >> keywords[4] >> size;
+									std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
+									//We will have to create a directory on the pc we use for the presentation
+									// the commented out strings are specific to my home pc
 
+									//std::string keyname = "/home/tyson/Documents/CSCI222/Submissions/" + filename + "_keywords.txt";
+									//std::string file_out = "/home/tyson/Documents/CSCI222/Submissions/"+ filename;
+									
+									std::string keyname = filename + "_keywords.txt";	
+									std::ofstream outfile;
+									std::ofstream keyfile;
 
-										std::cout << filename << "is this big: " << size <<std::endl;
-										//We will have to create a directory on the pc we use for the presentation
-										// the commented out strings are specific to my home pc
-
-
-										//std::string keyname = "/home/tyson/Documents/CSCI222/Submissions/" + filename + "_keywords.txt";
-										//std::string file_out = "/home/tyson/Documents/CSCI222/Submissions/"+ filename;
-										std::string keyname = filename + "_keywords.txt";	
-										std::ofstream outfile;
-										std::ofstream keyfile;
-
+									outfile.open(filename.c_str(), std::ofstream::binary);
+									keyfile.open(keyname.c_str(), std::ios::app);
 										
-
-										outfile.open(filename.c_str(), std::ofstream::binary);
-										keyfile.open(keyname.c_str(), std::ios::app);
-											
-										for(int i = 0; i < 5; i++){
-											keyfile << keywords[i] << std::endl;
-										}
-
-
-											
-
-
-
-											while(size > max_size)
-											{
-												//Recieve raw Data
-												client.receive(Buffer, sizeof(Buffer), received);
-												//Output to designated file
-												outfile.write(Buffer, sizeof(Buffer));
-												//Keep track of file size so we know when file
-												//is completely transfered
-												max_size += sizeof(Buffer);
-												
-
-											}
-
+									for(int i = 0; i < 5; i++)
+									{
+										keyfile << keywords[i] << std::endl;
 									}
-
-
-
-
-
+									while(size > max_size)
+									{
+										//Recieve raw Data
+										client.receive(Buffer, sizeof(Buffer), received);
+										//Output to designated file
+										outfile.write(Buffer, sizeof(Buffer));
+										//Keep track of file size so we know when file
+										//is completely transfered
+										max_size += sizeof(Buffer);
+									}
+								}
+								case 5:	//NOTIFIES
+								{
+									loadNotifs(client, loginPacket);
+								}
 							}
 						}
 					}
@@ -325,6 +311,51 @@ int main()
 }
 
 using namespace std;
+
+// loads notifs from a text file
+void loadNotifs(sf::TcpSocket& client, sf::Packet& NotifPacket)
+{
+	std::string username;
+	std::string notifs;
+	int count;
+	PacketType pType = GET_NOTIFICATION;
+
+	NotifPacket >> username;
+									
+	// get the filename
+	std::string fname = username;
+	fname.append("_notifs.txt");
+	
+	// open the file
+	std::ifstream ifile;
+	ifile.open(fname.c_str(), std::ifstream::in);
+	
+	// if it's open
+	if (ifile.is_open())
+	{
+		notifs = "";
+		std::string next = "";
+		count = 0;
+	
+		// check it's good
+		while (!ifile.eof())
+		{
+			// get the next line and add a delim
+			std::getline(ifile, next);
+			notifs.append(next);
+			notifs.append("~");
+			count++;
+		}
+		count--;
+		
+	}
+	
+	// send back to client
+	ifile.close();
+	sf::Packet serverReply;
+	serverReply << pType << count << notifs;								
+	client.send(serverReply);
+}
 
 
 	//just ignore this for now was creating my own itoa function just incase
@@ -352,19 +383,19 @@ string check_User(const string& username, const string& password, const string& 
 	if(returnvalue == "NON-EXISTING")
 	{
 		fname = "Reviewers.txt";
-		check_File(fname, username, password, email);
+		returnvalue = check_File(fname, username, password, email);
 	}
 	if(returnvalue == "NON-EXISTING")
 	{
 			//check Authors
 		fname = "Authors.txt";
-		check_File(fname, username, password, email);
+		returnvalue = check_File(fname, username, password, email);
 	}
 	if(returnvalue == "NON-EXISTING")
 	{
 			//check Users
 		fname = "Users.txt";
-		check_File(fname, username, password, email);
+		returnvalue = check_File(fname, username, password, email);
 	}
 	return returnvalue;
 }

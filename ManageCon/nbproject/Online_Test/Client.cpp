@@ -7,7 +7,10 @@
 #include <SFML/Network/Packet.hpp>
 #include <sstream>
 #include "sharedglobals.h"
-#include "Classes.h"
+#include "User.h"
+#include "Author.h"
+#include "Reviewer.h"
+#include "Admin.h"
 
 	//Just a simple GUI function to make sure the mouse is on screen when checking mouse events
 bool in_Window(const sf::Mouse&, const sf::Window&, const sf::Vector2<int>&);
@@ -122,7 +125,7 @@ int main()
 						userType = "REVIEWER";
 					}
 				}
-				while(userType != "AUTHOR" && userType != "REVIWER");
+				while(userType != "AUTHOR" && userType != "REVIEWER");
 				do
 				{
 					std::cout << "Email address: ";

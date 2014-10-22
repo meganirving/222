@@ -10,7 +10,7 @@
 #include <list>
 #include "sharedglobals.h"
 
-std::string check_User(std::string, std::string);
+std::string check_User(const std::string&, const std::string&, const std::string&);
 int get_User_Count();
 char* ItoA(int);
 
@@ -41,6 +41,7 @@ int main()
 	PacketType Ptype;						// Packet type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
+	std::string email = "x";						// email address for an account
 	std::string input;						// input command (server needs to know aswell)
 	std::string userlevel = "-1";			// works out type of user e.g. Author, Admin
 	
@@ -96,24 +97,22 @@ int main()
 								// Extract the variables contained in the packet
 							
 							loginPacket >> ID >> Ptype;
-							
-							std::cout << ID << " " << Ptype << std::endl;
 							switch(Ptype)
 							{
 								case 0: 
 									loginPacket >> username >> password;
 									std::cout << ID <<  " LOGIN REQUEST: " << username << ", " << password << std::endl; 
-									userlevel = check_User(username, password);
+									userlevel = check_User(username, password, email);
 										// send data to reply packet
 									serverReply << ID << Ptype << userlevel;
 										// send reply
 									client.send(serverReply);
 									break;
 								case 1:
-									loginPacket >> username >> password;
-									std::cout << ID <<  " SIGN-UP REQUEST: " << username << password << std::endl; 
+									loginPacket >> username >> password >> email;
+									std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << email<< std::endl; 
 						//make sure designated username doesn't already exist
-									userlevel = check_User(username, password);
+									userlevel = check_User(username, password, email);
 									if(userlevel == "NON-EXISTING")
 									{
 											//make sure file exists
@@ -123,19 +122,15 @@ int main()
 										{
 											fin.close();
 											fout.open("Users.txt");
-											fout << username << "," << password << std::endl;
+											fout << username << "," << password << "," << email << std::endl;
 										}
 										else
 										{	
 											fin.close();
 											fout.open("Users.txt", std::ios::app);
-											fout << username << "," << password << std::endl;
+											fout << username << "," << password << "," << email << std::endl;
 										}
 										fout.close();
-									}
-									else
-									{
-										userlevel = "-1";
 									}
 										// send data to reply packet
 									serverReply << ID << Ptype << userlevel;
@@ -170,10 +165,12 @@ char* ItoA(int num)
 }
 
 	//Finds what level of access the user should have
-string check_User(string username, string password)
+string check_User(const string& username, const string& password, const string& email)
 {
-	char tempUser[256];
-	char tempPass[256];
+	char tempUser[17];		//max username length = 16 + \0
+	char tempPass[21];		//max password length = 20 + \0
+	char tempEmail[254];	//http://stackoverflow.com/questions/386294/what-is-the-maximum-length-of-a-valid-email-address
+	
 		//check admin
 	ifstream fin("PC_Chair.txt");
 	if(!fin.good())	//make sure file exists, otherwise create one
@@ -187,7 +184,8 @@ string check_User(string username, string password)
 		if(fin.good())	//if instead of while since theres only one admin
 		{
 			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, '\n');
+			fin.getline(tempPass, 256, ',');
+			fin.getline(tempEmail, 256, '\n');
 			
 			if(!strcmp(tempUser, username.c_str()))
 			{
@@ -196,6 +194,13 @@ string check_User(string username, string password)
 					return "ADMIN";
 				}
 				return "BAD-PASS";	
+			}
+			else
+			{
+				if(!strcmp(tempEmail, email.c_str()))
+				{
+					return "EXISTING-EMAIL";
+				}
 			}
 		}
 	}
@@ -213,7 +218,8 @@ string check_User(string username, string password)
 		while(!fin.eof())
 		{
 			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, '\n');
+			fin.getline(tempPass, 256, ',');
+			fin.getline(tempEmail, 256, '\n');
 			if(!strcmp(tempUser, username.c_str()))
 			{
 				if(!strcmp(tempPass, password.c_str()))
@@ -221,6 +227,13 @@ string check_User(string username, string password)
 					return "REVIEWER";
 				}
 				return "BAD-PASS";	
+			}
+			else
+			{
+				if(!strcmp(tempEmail, email.c_str()))
+				{
+					return "EXISTING-EMAIL";
+				}
 			}
 		}
 	}
@@ -239,7 +252,8 @@ string check_User(string username, string password)
 		while(!fin.eof())
 		{
 			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, '\n');
+			fin.getline(tempPass, 256, ',');
+			fin.getline(tempEmail, 256, '\n');
 			if(!strcmp(tempUser, username.c_str()))
 			{
 				if(!strcmp(tempPass, password.c_str()))
@@ -247,6 +261,13 @@ string check_User(string username, string password)
 					return "AUTHOR";
 				}
 				return "BAD-PASS";	
+			}
+			else
+			{
+				if(!strcmp(tempEmail, email.c_str()))
+				{
+					return "EXISTING-EMAIL";
+				}
 			}
 		}
 	}
@@ -265,7 +286,8 @@ string check_User(string username, string password)
 		while(!fin.eof())
 		{
 			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, '\n');
+			fin.getline(tempPass, 256, ',');
+			fin.getline(tempEmail, 256, '\n');
 			if(!strcmp(tempUser, username.c_str()))
 			{
 				if(!strcmp(tempPass, password.c_str()))
@@ -273,6 +295,13 @@ string check_User(string username, string password)
 					return "UNAPPROVED";
 				}
 				return "NON-EXISTING";	
+			}
+			else
+			{
+				if(!strcmp(tempEmail, email.c_str()))
+				{
+					return "EXISTING-EMAIL";
+				}
 			}
 		}
 	}

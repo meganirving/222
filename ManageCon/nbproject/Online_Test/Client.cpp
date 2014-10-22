@@ -30,7 +30,7 @@ int main()
 
 
 		// Setting up a text type for GUI
-	sf::Font font;
+	/*sf::Font font;
 	if (!font.loadFromFile("Padauk.ttf"))
 	{
 		std::cout << "Error loading font" << std::endl;
@@ -41,12 +41,13 @@ int main()
 	text.setColor(sf::Color::White);		// set colour
 	text.setStyle(sf::Text::Bold);			// set style
 	text.setString("Test");					// set debug string
-	
+	*/
 		//packet contents
 	std::string ID = "00000000";			// unique ID for server reference 
 	PacketType Ptype;						// message type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
+	std::string email;						// email address for an account
 	std::string input;						// input command (server needs to know aswell)
 	std::string userlevel = "-1";			// works out type of user e.g. Author, Admin
 
@@ -91,7 +92,6 @@ int main()
 				std::cin >> username;
 				std::cout << "Enter password: ";
 				std::cin >> password;
-				
 				Ptype = LOGIN;
 				
 				
@@ -129,6 +129,12 @@ int main()
 					}
 				}
 				while(password.length() < 5 || password.length() > 20);
+				//do
+				//{
+					std::cout << "Email address: ";
+					std::cin >> email;
+				//}
+				//while(checkEmail());
 				
 				Ptype = SIGN_UP;
 				
@@ -136,7 +142,7 @@ int main()
 				sf::Packet loginPacket;
 				
 					//Send data to packet
-				loginPacket << ID << Ptype << username << password;
+				loginPacket << ID << Ptype << username << password << email;
 				
 					//Send packet to server
 				socket.send(loginPacket);
@@ -186,6 +192,10 @@ int main()
 						{
 							std::cout << "Created account now awaiting approval" << std::endl;
 						}
+						else if(userlevel == "EXISTING-EMAIL")
+						{
+							std::cout << "Email account already being used" << std::endl;
+						}
 						else
 						{
 							std::cout << "Account name already exists" << std::endl;
@@ -195,110 +205,25 @@ int main()
 			}
 		}
 		User* player;
-		if(userlevel == "AUTHOR")
-		{
-			player = new Author(username, password);
-		}
-		else if(userlevel == "REVIEWER")
-		{
-			player = new Reviewer(username, password);
-		}
+		
 			//A user has successfully signed in
 		while(signedIn == true)
 		{
-			player->Display(signedIn, input);
-			/*
 			if(userlevel == "AUTHOR")
 			{
-				std::cout << "_____________________________________" << std::endl;
-				std::cout << "|            Logged In              |" << std::endl;
-				std::cout << "|   'S'ubmit work                   |" << std::endl;
-				std::cout << "|   'E'mails                        |" << std::endl;
-				std::cout << "|   'Q'uit                          |" << std::endl;
-				std::cout << "|___________________________________|" << std::endl;
-				std::cout << "\n--> ";
-				std::cin >> input;
-				if(input == "Q")
-				{
-					signedIn = false;
-				}
+				player = new Author(username, password, email);
 			}
 			else if(userlevel == "REVIEWER")
 			{
-				std::cout << "_____________________________________" << std::endl;
-				std::cout << "|            Logged In              |" << std::endl;
-				std::cout << "|   'R'eview work                   |" << std::endl;
-				std::cout << "|   'S'et prefences				  |" << std::endl;
-				std::cout << "|   'E'mails                        |" << std::endl;
-				std::cout << "|   'Q'uit                          |" << std::endl;
-				std::cout << "|___________________________________|" << std::endl;
-				std::cout << "\n--> ";
-				std::cin >> input;
-				if(input == "Q")
-				{
-					signedIn = false;
-				}
+				player = new Reviewer(username, password, email);
 			}
-			else
+			else if(userlevel == "ADMIN")
 			{
-				std::cout << "_____________________________________" << std::endl;
-				std::cout << "|            Logged In              |" << std::endl;
-				std::cout << "|   'M'anage Users                  |" << std::endl;
-				std::cout << "|   'S'et deadlines            	  |" << std::endl;
-				std::cout << "|   'E'mails                        |" << std::endl;
-				std::cout << "|   'Q'uit                          |" << std::endl;
-				std::cout << "|___________________________________|" << std::endl;
-				std::cout << "\n--> ";
-				std::cin >> input;
-				if(input == "M")
-				{
-					
-				}
-				else if(input == "Q")
-				{
-					signedIn = false;
-				}
-			}*/
+				player = new Admin(username, password, email);
+			}
+			player->Display(signedIn, input);
 		}
 	}
-    
-
-		//if we decide to use GUI then we will need to implement inside this while loop
-
-    /*while (window.isOpen())
-    {
-    	//std::cout << "in game" << std::endl;
-		double deltaTime = clock.restart().asSeconds();
-		sf::Event event;
-		sf::Mouse mouse;
-
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		int action = input.GetAction(deltaTime);
-	
-	
-		if (mouse.isButtonPressed(mouse.Left))
-		{
-			if(in_Window(mouse, window, screen_size))
-			{
-				socket.send(ID, sizeof(ID));
-				socket.send(username, sizeof(username));
-				socket.send(password, sizeof(password));
-				
-				char* userlevel;
-				std::size_t recieved = 0;
-			}
-		}
-	
-        window.clear();
-        window.draw(text);
-        window.display();
-    }*/
-
     return 0;
 }
 

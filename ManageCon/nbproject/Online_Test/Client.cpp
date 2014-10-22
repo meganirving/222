@@ -164,7 +164,7 @@ int main()
 			if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
 			{
 					//push data from server reply into variables
-				serverReply >> ID >> Ptype;
+				serverReply >> Ptype;
 				switch(Ptype)
 				{
 					case 0:
@@ -211,17 +211,18 @@ int main()
 		{
 			if(userlevel == "AUTHOR")
 			{
-				player = new Author(username, password, email);
+				player = new Author(ID, username, password, email);
 			}
 			else if(userlevel == "REVIEWER")
 			{
-				player = new Reviewer(username, password, email);
+				player = new Reviewer(ID, username, password, email);
 			}
 			else if(userlevel == "ADMIN")
 			{
-				player = new Admin(username, password, email);
+				player = new Admin(ID, username, password, email);
 			}
-			player->Display(signedIn, input);
+			player->Display(signedIn, input, socket);
+			
 		}
 	}
     return 0;

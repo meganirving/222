@@ -12,18 +12,21 @@
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 class Date {
 private:
     int day;
     int month;
     int year;
+    std::string deadline;
 public:
     Date(){}
     ~Date(){}
     void setDeadline(std::string);
-    void getDeadline();
     void getCurrentDate();
+    void getDeadline();
 };
 
 

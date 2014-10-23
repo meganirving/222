@@ -10,7 +10,8 @@
 
 int main(){
     Date date;
-    
+    date.setDeadline("09/9/1974");
+    date.getDeadline();
     date.getCurrentDate();
     return 0;
 }
@@ -22,19 +23,34 @@ void Date::getCurrentDate() {
     time (&rawtime);
     timeinfo = localtime (&rawtime);
     std::cout << "Current time and date: " << asctime(timeinfo) << std::endl;
-    //printf ("Current local time and date: %s", asctime(timeinfo));
 
 }
 
 void Date::setDeadline(std::string date){
-    for (int i = 0; i < strlen(date); i++) {
-        <#statements#>
+    std::string tmp;
+    std::stringstream stream(date);
+    int i = 0;
+    while (getline(stream, tmp, '/')) {
+        switch (i) {
+            case 0:
+                day = atoi(tmp.c_str());
+                i++;
+                break;
+            case 1:
+                month = atoi(tmp.c_str());
+                i++;
+                break;
+            case 2:
+                year = atoi(tmp.c_str());
+                i++;
+                break;
+            default:
+                break;
+        }
     }
-    day = d;
-    month = m;
-    year = y;
 }
-int Date::getDeadline(int, int, int) {
-    int deadline;
+
+void Date::getDeadline() {
+    std::cout << std::setw(2) << std::setfill('0') << day << "/" << std::setw(2) << std::setfill('0') << month << "/" << year << std::endl;
     
 }

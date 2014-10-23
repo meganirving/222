@@ -11,7 +11,7 @@
 #include "sharedglobals.h"
 
 std::string check_User(const std::string&, const std::string&, const std::string&);
-int get_User_Count();
+std::string get_Users(int&);
 char* ItoA(int);
 
 int main()
@@ -104,7 +104,7 @@ int main()
 									std::cout << ID <<  " LOGIN REQUEST: " << username << ", " << password << std::endl; 
 									userlevel = check_User(username, password, email);
 										// send data to reply packet
-									serverReply << ID << Ptype << userlevel;
+									serverReply << Ptype << userlevel;
 										// send reply
 									client.send(serverReply);
 									break;
@@ -133,9 +133,19 @@ int main()
 										fout.close();
 									}
 										// send data to reply packet
-									serverReply << ID << Ptype << userlevel;
+									serverReply << Ptype << userlevel;
 										// send reply
 									client.send(serverReply);
+									break;
+								case 2:
+										std::cout << ID <<  " MANAGE USERS REQUEST" << std::endl; 
+										std::string users;
+										int count = 0;
+										users = get_Users(count);
+										
+										serverReply << Ptype << count << users;
+										
+										client.send(serverReply);
 									break;
 							}
 						}
@@ -310,68 +320,33 @@ string check_User(const string& username, const string& password, const string& 
 	return "NON-EXISTING";
 }
 
-
-	//For later use we can count the current amount of users that exist
-int get_User_Count()
+std::string get_Users(int& counter)
 {
-	int counter = 0;
+	ifstream fin;
 	char tempLine[256];
-	
-		//check admin
-	ifstream fin("PC_Chair.txt");
-	if(!fin.good())	//make sure file exists, otherwise create one
-	{
-		fin.close();
-		ofstream fout("PC_Chair.txt", ios::out);
-		fout.close();
-	}
-	else			//search through
-	{
-		while(fin.getline(tempLine, 256, ','))
-		{
-			counter++;
-		}
-			//-1 for eof character
-		counter--;
-	}
-	fin.close();
-		//check Reviewers
-	fin.open("Reviewers.txt", ios::app);
-	if(!fin.good())	//make sure file exists, otherwise create one
-	{
-		fin.close();
-		ofstream fout("Reviewers.txt", ios::out);
-		fout.close();
-	}
-	else			//search through
-	{
-		while(fin.getline(tempLine, 256, ','))
-		{
-			counter++;
-		}
-			//-1 for eof character
-		counter--;
-	}
-	fin.close();
-	
+	char end_of_user = '~';
+	std::string users = "";
 		//check Authors
-	fin.open("Authors.txt", ios::app);
+	fin.open("Users.txt", ios::in);
 	if(!fin.good())	//make sure file exists, otherwise create one
 	{
 		fin.close();
-		ofstream fout("Authors.txt", ios::out);
+		ofstream fout("Users.txt", ios::out);
 		fout.close();
 	}
 	else			//search through
 	{
-		while(fin.getline(tempLine, 256, ','))
+		while(fin.good())
 		{
-			counter++;
+			fin.getline(tempLine, 256, '\n');
+			if(fin.good())
+			{
+				users.append(tempLine);
+				users += end_of_user;
+				counter++;
+			}
 		}
-			//-1 for eof character
-		counter--;
 	}
 	fin.close();
-
-	return counter;
+	return users;
 }

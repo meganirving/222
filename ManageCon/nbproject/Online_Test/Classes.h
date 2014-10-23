@@ -1,43 +1,47 @@
 #ifndef USER_H
 #define USER_H
 #include <iostream>
+#include <SFML/Network.hpp>
+#include "sharedglobals.h"
 class User
 {
 	protected:
+		std::string id;
 		std::string username;
 		std::string password;
 		std::string email;
 	public:	
 		User(){}
 		~User(){}
-		virtual void Display(bool&, std::string&);
+		virtual void Display(bool&, std::string&, sf::TcpSocket&);
 };
 
 class Author : public User
 {
 	private:
 	public:
-		Author(const std::string&, const std::string&, const std::string&);
+		Author(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Author(){}
-		void Display(bool&, std::string&);
+		void Display(bool&, std::string&, sf::TcpSocket&);
 };
 
 class Reviewer : public User
 {
 	private:
 	public:
-		Reviewer(const std::string&, const std::string&, const std::string&);
+		Reviewer(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Reviewer(){}
-		void Display(bool&, std::string&);
+		void Display(bool&, std::string&, sf::TcpSocket&);
 };
 
 class Admin : public User
 {
 	private:
 	public:
-		Admin(const std::string&, const std::string&, const std::string&);
+		Admin(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Admin(){}
-		void Display(bool&, std::string&);
+		void Display(bool&, std::string&, sf::TcpSocket&);
+		void ManageUsers(sf::TcpSocket&);
 };
 
 #endif

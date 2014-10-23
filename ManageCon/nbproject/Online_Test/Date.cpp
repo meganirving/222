@@ -8,14 +8,6 @@
 
 #include "Date.h"
 
-int main(){
-    Date date;
-    date.setDeadline("09/9/1974");
-    date.getDeadline();
-    date.getCurrentDate();
-    return 0;
-}
-
 void Date::getCurrentDate() {
     time_t rawtime;
     struct tm * timeinfo;

@@ -255,6 +255,65 @@ int main()
 								
 									break;
 								}
+									case 4:
+									{
+										int size = 0, max_size = 0;
+										std::string filename;
+										std::string keywords[5];
+										std::size_t received = 0;
+
+										char *Buffer = new char[4096];
+
+										loginPacket >> filename >> keywords[0] >> keywords[1] 
+		  									   >> keywords[2] >>keywords[3] 
+		  									   >> keywords[4] >> size;
+	
+
+
+										std::cout << filename << "is this big: " << size <<std::endl;
+										//We will have to create a directory on the pc we use for the presentation
+										// the commented out strings are specific to my home pc
+
+
+										//std::string keyname = "/home/tyson/Documents/CSCI222/Submissions/" + filename + "_keywords.txt";
+										//std::string file_out = "/home/tyson/Documents/CSCI222/Submissions/"+ filename;
+										std::string keyname = filename + "_keywords.txt";	
+										std::ofstream outfile;
+										std::ofstream keyfile;
+
+										
+
+										outfile.open(filename.c_str(), std::ofstream::binary);
+										keyfile.open(keyname.c_str(), std::ios::app);
+											
+										for(int i = 0; i < 5; i++){
+											keyfile << keywords[i] << std::endl;
+										}
+
+
+											
+
+
+
+											while(size > max_size)
+											{
+												//Recieve raw Data
+												client.receive(Buffer, sizeof(Buffer), received);
+												//Output to designated file
+												outfile.write(Buffer, sizeof(Buffer));
+												//Keep track of file size so we know when file
+												//is completely transfered
+												max_size += sizeof(Buffer);
+												
+
+											}
+
+									}
+
+
+
+
+
 							}
 						}
 					}

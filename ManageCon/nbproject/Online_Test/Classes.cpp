@@ -30,6 +30,8 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 }
 void Author::SubmitWork(){
 
+	std::string ID = "01010101";
+	PacketType PType = WORK_SUBMISSION; 
 	sf::Packet packet;
 	sf::TcpSocket socket;
 	std::string filename;
@@ -57,34 +59,31 @@ void Author::SubmitWork(){
 
 	std::cout << "File size is: " << size << std::endl;
 	//File back with filename, keywords and size of file to expect
-	packet << filename << keywords[0] << 
+	packet << ID << PType << filename << keywords[0] << 
 			   keywords[1] << keywords[2] <<keywords[3] << keywords[4] << size;
 
 
 	
 	
-if(File.good())
-	{
+	if(File.good())
+		{
 
-	std::cout << "File is good" << std::endl;
+		std::cout << "File is good" << std::endl;
 
-	socket.send(packet);
-	//Make sure file pointer is at beginning
-	File.seekg(0, std::ios::beg);
+		socket.send(packet);
+		//Make sure file pointer is at beginning
+		File.seekg(0, std::ios::beg);
 
-	char* Buffer = new char[4096];
+		char* Buffer = new char[4096];
 
-	while(File.read(Buffer, sizeof(Buffer)))
-	{
+		while(File.read(Buffer, sizeof(Buffer)))
+		{
 
-		socket.send(Buffer, sizeof(Buffer));
-
-
-
-	}
-	
-	File.close();
-	delete[] Buffer;
+			socket.send(Buffer, sizeof(Buffer));
+		}
+		
+		File.close();
+		delete[] Buffer;
 
 	
 	}

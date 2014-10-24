@@ -1,6 +1,8 @@
 #ifndef USER_H
 #define USER_H
 #include <iostream>
+#include <cstring>
+#include <fstream>
 #include <SFML/Network.hpp>
 #include "sharedglobals.h"
 class User
@@ -23,6 +25,7 @@ class Author : public User
 		Author(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Author(){}
 		void Display(bool&, std::string&, sf::TcpSocket&);
+		void SubmitWork();
 };
 
 class Reviewer : public User

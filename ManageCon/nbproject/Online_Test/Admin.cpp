@@ -9,6 +9,73 @@ Admin::Admin(const std::string& ID, const std::string& name, const std::string& 
 	email = myemail;
 }
 
+void Admin::paperMenu(sf::TcpSocket& socket) 
+{
+	std::vector<std::string>::iterator itr = papernames.begin();
+	std::vector<std::string>::iterator name_itr = usernames.begin();
+	
+	// display menu until go back
+	char input = 'x';
+	while (input != 'B')
+	{
+		// display paper name and options
+		std::cout << "\n|\t\t" << *itr << "\t|" << std::endl;
+		std::cout << "|\tAverage Score: " << avScoreOfPaper(socket, id, *itr) << "\t|" << std::endl;
+		
+		std::cout << "|\t'V'iew Reviews\t\t|" << std::endl;
+		
+		std::cout << "|\t\t\t\t|" << std::endl;
+		std::cout << "|\t'A'ccept Paper\t\t|" << std::endl;
+		std::cout << "|\t'R'eject Paper\t\t|" << std::endl;
+		
+		std::cout << "|\t\t\t\t|" << std::endl;
+		std::cout << "|\t'P'rev Paper\t\t|" << std::endl;
+		std::cout << "|\t'N'ext Paper\t\t|" << std::endl;
+		std::cout << "|\t'B'ack\t\t\t|" << std::endl;
+		
+		// get input and deal with it
+		std::cin >> input;
+		switch(input)
+		{
+			case 'V': // view reviews of this paper
+			{
+				reviewCommentMenu(socket, *itr);
+				break;
+			}
+			case 'N': // view next paper
+			{
+				std::vector<std::string>::iterator temp = itr;
+				temp++;
+				if (temp != papernames.end())
+				{
+					itr = temp;
+					name_itr++;
+				}
+				break;
+			}
+			case 'P': // view prev paper
+			{
+				if (itr != papernames.begin())
+				{
+					itr--;
+					name_itr--;
+				}
+				break;
+			}
+			case 'A': // accept paper
+			{
+				AcceptPapers(*itr, socket, *name_itr);
+				break;	
+			}
+			case 'R':
+			{
+				RejectPapers(*itr, socket, *name_itr);
+				break;
+			}
+		}
+	}
+}
+
 void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
@@ -49,6 +116,86 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	{
 		signedIn = false;
 	}
+	else if(input =="A")
+	{
+		ManagePapers(socket);
+	}
+}
+void Admin::ManagePapers(sf::TcpSocket& socket)
+{
+	papernames.push_back("test paper");
+	papernames.push_back("other test");
+
+	std::ifstream filename_database;
+	std::string username;
+	std::string buffer;
+	filename_database.open("filenames.txt");	
+	
+	while(!filename_database.eof())
+	{
+	
+		filename_database >> buffer;
+		getline(filename_database, username);
+		if(!filename_database.eof())
+		{
+			papernames.push_back(buffer);	
+			usernames.push_back(username);
+			
+		}		
+	}
+	
+	paperMenu(socket);
+}
+void Admin::AcceptPapers(std::string file, sf::TcpSocket& socket, std::string username)
+{
+	file.erase(file.length()-5, 4);
+	std::string news = username + "'s paper " + file + " has been added to the conference!\n";
+	
+	addNews(news, socket, id);
+				
+}
+void Admin::RejectPapers(std::string file, sf::TcpSocket& socket, std::string username)
+{
+	std::string ID = "02030403";
+	PacketType pType = OVERIDE_FILENAMES;
+	std::vector<std::string>::iterator itr = papernames.begin();
+	std::vector<std::string>::iterator name_itr = usernames.begin();
+	std::string buffer;
+	bool found = false;
+	
+	while(itr != papernames.end() && !found)
+	{
+		if(*itr == file)
+		{
+			found = true;
+		}
+		else
+		{
+			itr++;
+			name_itr++;
+		}
+	}
+	
+	if(found)
+	{
+		papernames.erase(itr);
+		usernames.erase(name_itr);
+	}	
+	itr = papernames.begin();
+	name_itr = usernames.begin();
+	
+	while(itr != papernames.end())
+	{
+		buffer.append(*itr + " " + *name_itr + "\n");
+		itr++;
+		name_itr++;
+	}
+	
+	sf::Packet packet;
+	packet << ID << pType << buffer;
+	
+	socket.send(packet);	
+
 }
 
 void Admin::ManageUsers(sf::TcpSocket& socket)

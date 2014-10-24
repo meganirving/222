@@ -94,13 +94,13 @@ void Reviewer::reviewMenu(sf::TcpSocket& socket)
 			case 'G': // get form
 			{
 				std::cout << "\nDownloading review form..." << std::endl;
-				//generateForm(*itr);
+				generateForm(username, *itr);
 				std::cout << "Review form downloaded!\n" << std::endl;
 				break;
 			}
 			case 'S': // submit form
 			{
-				//submitReview(socket, id, username, *itr);
+				submitReview(socket, id, username, *itr);
 				break;
 			}
 			case 'N': // view next paper

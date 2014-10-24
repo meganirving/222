@@ -35,7 +35,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1337) != sf::Socket::Done)
+	if (listener.listen(1338) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -302,25 +302,48 @@ int main()
 								}
 								case 4:	//SUBMIT PDF FILE
 								{
-									int size = 0, max_size = 0;
+										//std::cout << "REDCIEVED PACKET" << std::endl;
+									int size = 0, max_size = 0, max_size2 = 0;
+									int size2 = 0;
+									std::string username;
 									std::string filename;
+									std::string filename2;
 									std::string keywords[5];
 									std::size_t received = 0;
+									std::size_t received2= 0;
 
 									char *Buffer = new char[4096];
+									char *Buffer2 = new char [4096];
 
-									loginPacket >> filename >> keywords[0] >> keywords[1] >> keywords[2] >> keywords[3] >> keywords[4] >> size;
-									std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
+									loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> 
+									keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
+									
+									//std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
+									//std::cout << ID << " FILE SUBMISSION: " << filename2 << " has a file size of: " << size2 <<std::endl;
+								
 									//We will have to create a directory on the pc we use for the presentation
 									// the commented out strings are specific to my home pc
-
-									//std::string keyname = "/home/tyson/Documents/CSCI222/Submissions/" + filename + "_keywords.txt";
-									//std::string file_out = "/home/tyson/Documents/CSCI222/Submissions/"+ filename;
+									std::ofstream username_file;
+									std::ofstream filename_database;
+									std::string user_file = username + "_submissions.txt";
 									
-									std::string keyname = filename + "_keywords.txt";	
+									username_file.open(username.c_str(), std::ios::app);
+									filename_database.open("filenames.txt", std::ios::app);	
+
+									username_file << filename << std::endl;
+									
+									std::string buffer = filename;
+
+
+									buffer.erase(buffer.end()-4, buffer.end());
+									
+									
+									std::string keyname = buffer + "_keywords.txt";	
 									std::ofstream outfile;
 									std::ofstream keyfile;
-
+									std::ofstream outfile2;
+									
+									outfile2.open(filename2.c_str(), std::ofstream::binary);
 									outfile.open(filename.c_str(), std::ofstream::binary);
 									keyfile.open(keyname.c_str(), std::ios::app);
 										
@@ -338,6 +361,23 @@ int main()
 										//is completely transfered
 										max_size += sizeof(Buffer);
 									}
+									outfile.close();
+									
+									/*while(size2 > max_size2)
+									{
+										//Recieve raw Data
+										client.receive(Buffer2, sizeof(Buffer2), received2);
+										//Output to designated file
+										outfile2.write(Buffer2, sizeof(Buffer2));
+										//Keep track of file size so we know when file
+										//is completely transfered
+										max_size2 += sizeof(Buffer2);
+										std::cout << max_size2 << " " << size2 << std::endl;
+									}
+									outfile2.close();*/
+									
+									filename_database << filename << " " << username << std::endl;
+									//std::cout << "BREAK OUT" << std::endl;
 									break;
 								}
 								case 5:	//NOTIFIES
@@ -366,28 +406,47 @@ int main()
 								case 9: // SAVE COMMENT
 								{
 									addComment(client, loginPacket);
+									break;
 								}
 								case 10: // SAVE REVIEW
 								{
 									submitReview(client, loginPacket);
+									break;
 								}
 								case 11: // GET ALL REVIEWS
 								{
 									getAllReviews(client, loginPacket);
+									break;
 								}
 								case 12: // GET THE NEWSFEED
 								{
 									getAllNews(client);
+									break;
 								}
 								case 13: // SAVE THE NEWSFEED
 								{
 									saveNews(loginPacket);
+									break;
 								}
 								case 14: // GET THE CURRENT PHASE
 								{
 									getPhase(client, Ptype);
+									break;
 								}
-							}
+								case 15: //Recieve new filenames.txt
+								{
+									std::string buffer;
+									
+									loginPacket << buffer;
+									
+									std::ofstream ofile;
+									ofile.open("filenames.txt", std::ios::out);
+									ofile << buffer;
+									ofile.close();
+									break;
+								}
+								
+							}	
 						}
 					}
 				}
@@ -421,13 +480,27 @@ void getAllNews(sf::TcpSocket& client)
 				news.append("\n");
 			}
 		}
+		
+		// if file is empty (aka: no *s)
+		int pos = news.find('*');
+		if (pos == std::string::npos)
+		{
+			// create new news
+			news = "No news is good news*\n";
+			
+			// write to file
+			std::ofstream ofile;
+			ofile.open("newsfeed.txt", std::ios::out);
+			ofile << news;
+			ofile.close();
+		}
 	}
 	// no news yet, so add news and..return that?
 	else
 	{
 		std::ofstream ofile;
 		ofile.open("newsfeed.txt", std::ios::out);
-		news = "A conference is coming!*\n";
+		news = "No news is good news*\n";
 		ofile << news;
 		ofile.close();
 	}
@@ -536,7 +609,7 @@ void getPhase(sf::TcpSocket& client, const PacketType& Ptype)
 	}
 	
 	sf::Packet serverReply;
-	serverReply << Ptype << phase;								
+	serverReply << Ptype << phase;						
 	client.send(serverReply);
 }
 

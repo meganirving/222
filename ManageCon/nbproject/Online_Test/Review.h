@@ -38,11 +38,14 @@ public:
 };
 
 // deal with the Review class, but aren't tech. part of it
-void generateForm(std::string);
+void generateForm(std::string, std::string);
 Review generateReview(std::string);
 std::string getReview(std::string);
+
+// c/s
 void submitReview(sf::TcpSocket&, std::string, std::string, std::string);
 std::vector<Review> getAllReviews(sf::TcpSocket&, std::string, std::string);
 void addComment(sf::TcpSocket&, std::string, std::string, std::string, std::vector<Review>);
+float avScoreOfPaper(sf::TcpSocket&, std::string, std::string);
 
 #endif

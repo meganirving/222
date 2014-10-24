@@ -59,7 +59,7 @@ void Author::SubmitWork(){
 
 	std::cout << "File size is: " << size << std::endl;
 	//File back with filename, keywords and size of file to expect
-	packet << ID << PType << filename << keywords[0] << 
+	packet << ID << PType << filename << username << keywords[0] << 
 			   keywords[1] << keywords[2] <<keywords[3] << keywords[4] << size;
 
 

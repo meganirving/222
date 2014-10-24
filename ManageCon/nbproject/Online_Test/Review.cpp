@@ -354,6 +354,25 @@ std::string getReview(std::string fname)
 
 
 // functions that connect to the server:
+// gets all average scores of a paper
+float avScoreOfPaper(sf::TcpSocket& socket, std::string ID, std::string papername)
+{
+	// get all the reviews of a paper
+	std::vector<Review> allrevs = getAllReviews(socket, ID, papername);
+	int size = 0;
+	float score = 0;
+	
+	// loop through all reviews and update the score
+	for (int i = 0; i < allrevs.size(); i++)
+	{
+		size++;
+		score += allrevs[i].avScore;
+	}
+	
+	// get the average and return
+	score /= size;
+	return score;
+}
 // submits a review
 void submitReview(sf::TcpSocket& socket, std::string ID, std::string username, std::string papername)
 {
@@ -379,7 +398,7 @@ void submitReview(sf::TcpSocket& socket, std::string ID, std::string username, s
 		// send it to the server
 		PacketType ptype = SET_REVIEW;
 		sf::Packet packet;
-		packet << ID << ptype << review;
+		packet << ID << ptype << fname << username << review;
 		socket.send(packet);
 	}
 	
@@ -402,26 +421,30 @@ std::vector<Review> getAllReviews(sf::TcpSocket& socket, std::string ID, std::st
 	sf::Packet serverReply;
 	if(socket.receive(serverReply) == sf::Socket::Done)
 	{
-		serverReply >> bigString;
-		bool done = false;
-		// cuts it into review strings and turns those strings into reviews
-		while (!done)
+		serverReply >> pType;
+		if (pType == GET_REVIEWS)
 		{
-			int start = bigString.find_first_of("~");
-			// if there's another review to get
-			if (start != std::string::npos)
+			serverReply >> bigString;
+			bool done = false;
+			// cuts it into review strings and turns those strings into reviews
+			while (!done)
 			{
-				int end = bigString.find_first_of("~", start+1);
-				review = bigString.substr(start, end);
-				bigString = bigString.substr(end+1, bigString.length()-end);
+				int start = bigString.find_first_of("~");
+				// if there's another review to get
+				if (start != std::string::npos)
+				{
+					int end = bigString.find_first_of("~", start+1);
+					review = bigString.substr(start, end);
+					bigString = bigString.substr(end+1, bigString.length()-end);
 
-				Review temp;
-				temp.fromString(review);
-				reviews.push_back(temp);
+					Review temp;
+					temp.fromString(review);
+					reviews.push_back(temp);
 				
+				}
+				else
+					done = true;
 			}
-			else
-				done = true;
 		}
 	}
 	

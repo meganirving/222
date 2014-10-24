@@ -6,6 +6,7 @@
 #include <SFML/Network.hpp>
 #include "sharedglobals.h"
 #include "User.h"
+#include "Review.h"
 
 class Reviewer : public User
 {

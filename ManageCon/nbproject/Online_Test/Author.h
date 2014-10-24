@@ -11,10 +11,11 @@ class Author : public User
 {
 	private:
 	public:
+		Author(){}
 		Author(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Author(){}
 		void Display(bool&, std::string&, sf::TcpSocket&);
-		void SubmitWork();
+		void SubmitWork(sf::TcpSocket&);
 };
 
 #endif

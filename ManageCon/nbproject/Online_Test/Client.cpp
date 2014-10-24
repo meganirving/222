@@ -36,7 +36,7 @@ int main()
 
 		//Connect to server using TCP type connection
 	sf::TcpSocket socket;
-	sf::Socket::Status status = socket.connect("localhost", 1337);
+	sf::Socket::Status status = socket.connect("localhost", 1338);
 	if (status != sf::Socket::Done)
 	{
 		 std::cout << "Could not connect to server" << std::endl;
@@ -109,7 +109,7 @@ int main()
 					std::cin >> password;
 					if(password.length() < 5 || password.length() > 20)
 					{
-						std::cout << "Username must be between 5 and 20 characters long" << std::endl;
+						std::cout << "Password must be between 5 and 20 characters long" << std::endl;
 					}
 				}
 				while(password.length() < 5 || password.length() > 20);

@@ -11,19 +11,27 @@
 // for authors and reviewers: go through papers and view reviews
 void User::commentMenu(sf::TcpSocket& socket) 
 {
-	std::vector<std::string> papers;
-	std::vector<std::string>::iterator itr = papers.begin();
+	// for testing
+	papernames.push_back("test paper");
+	papernames.push_back("other test");
+	
+	std::vector<std::string>::iterator itr = papernames.begin();
 	
 	// display menu until go back
 	char input = 'x';
 	while (input != 'B')
 	{
 		// display paper name and options
-		std::cout << "\n|\t\t" << *itr << "\t\t|";
+		std::cout << "\n|\t" << *itr << "\t\t|" << std::endl;;
+		
+		
 		std::cout << "|\t'V'iew Reviews\t\t|" << std::endl;
+		
+		
+		std::cout << "|\t\t\t\t|" << std::endl;
 		std::cout << "|\t'P'rev Paper\t\t|" << std::endl;
 		std::cout << "|\t'N'ext Paper\t\t|" << std::endl;
-		std::cout << "|\t'B'ack\t\t|" << std::endl;
+		std::cout << "|\t'B'ack\t\t\t|" << std::endl;
 		
 		// get input and deal with it
 		std::cin >> input;
@@ -38,20 +46,23 @@ void User::commentMenu(sf::TcpSocket& socket)
 			{
 				std::vector<std::string>::iterator temp = itr;
 				temp++;
-				if (temp != papers.end())
+				if (temp != papernames.end())
 				{
 					itr = temp;
+					
 				}
 				break;
 			}
 			case 'P': // view prev paper
 			{
-				if (itr != papers.begin())
+				if (itr != papernames.begin())
 				{
 					itr--;
+					
 				}
 				break;
 			}
+			
 		}
 	}
 }
@@ -128,6 +139,11 @@ void User::reviewCommentMenu(sf::TcpSocket& socket, std::string papername)
 				}
 				break;
 			}
+			case 'B':
+			{
+				input = 'B';
+				break;
+			}
 		}
 	} // input == 'B', exit
 }
@@ -143,10 +159,19 @@ void User::getPhase(sf::TcpSocket& socket)
 	socket.send(phasePacket);
 	
 	// handle the response
+	
 	sf::Packet serverReply;
 	if(socket.receive(serverReply) == sf::Socket::Done)
 	{
-		serverReply >> currPhase;
+		serverReply >> pType;
+		if(pType == 14)
+		{
+			serverReply >> currPhase;
+		}
+		else
+		{
+			std::cout << "EXPECTED GET_PHASE GOT " << pType << std::endl;
+		}
 	}
 }
 

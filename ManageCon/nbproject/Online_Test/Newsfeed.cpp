@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-
 #include "Newsfeed.h"
 
 // newsfeed -> string -> newsfeed
@@ -61,9 +60,19 @@ Newsfeed getNews(sf::TcpSocket& socket, std::string ID)
 	std::string news;
 	if(socket.receive(serverReply) == sf::Socket::Done)
 	{
-		serverReply >> news;
-	}
+		serverReply >> pType;
+		
+		if(pType == GET_NEWS)
+		{
+			serverReply >> news;
+		}
+		else
+		{
+			std::cout << "EXPECTED GET_NEWS: " << pType << std::endl;
+		}	
 	
+	
+	}
 	// turn the response into news and return
 	return stringToNews(news);
 }

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <SFML/Network.hpp>
 #include "sharedglobals.h"
+#include "Newsfeed.h"
 
 struct Notification
 {
@@ -33,10 +34,11 @@ class User
 		std::vector<Notification> notifs;
 		int currPhase;
 		std::vector<std::string> papernames; // for authors: papers they've written. for reviewers: papers they're reviewing
+		std::vector<std::string> usernames;
 	public:	
 		User(){}
 		~User(){}
-		 virtual void Display(bool&, std::string&, sf::TcpSocket&){}
+		virtual void Display(bool&, std::string&, sf::TcpSocket&){}
 		
 		int unreadNotifs();
 		void displayNotifs(sf::TcpSocket&);

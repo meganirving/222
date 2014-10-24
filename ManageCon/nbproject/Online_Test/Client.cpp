@@ -13,54 +13,33 @@
 bool in_Window(const sf::Mouse&, const sf::Window&, const sf::Vector2<int>&);
 
 int main()
-{
-	//Stuff for GUI
-	/*
-	int screen_size_x = 256;
-	int screen_size_y = 128;
-	sf::Vector2<int> screen_size(screen_size_x, screen_size_y);
-	
-	sf::RenderWindow window(sf::VideoMode(screen_size_x, screen_size_y), "Online Test [1024x768]");
-	*/
-	
-	
-	//Setting random for connection ID(not best method because possible to be the same)
+{		
+	//Setting random for connection ID
+	//(not best method because possible to be the same)
 	srand(time(NULL));
 	sf::Clock clock;
-
-
-		// Setting up a text type for GUI
-	/*sf::Font font;
-	if (!font.loadFromFile("Padauk.ttf"))
-	{
-		std::cout << "Error loading font" << std::endl;
-	}
-	sf::Text text;
-	text.setFont(font);						// set font
-	text.setCharacterSize(24);				// set pixel size
-	text.setColor(sf::Color::White);		// set colour
-	text.setStyle(sf::Text::Bold);			// set style
-	text.setString("Test");					// set debug string
-	*/
 		//packet contents
 	std::string ID = "00000000";			// unique ID for server reference 
 	PacketType Ptype;						// message type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
+	std::string userType;					// type of user
 	std::string email;						// email address for an account
-	std::string input;						// input command (server needs to know aswell)
+	std::string input;						// input command 
+											// (server needs to know aswell)
 	std::string userlevel = "-1";			// works out type of user e.g. Author, Admin
 
 		//Connect to server using TCP type connection
 	sf::TcpSocket socket;
-	sf::Socket::Status status = socket.connect("localhost", 1339);
+	sf::Socket::Status status = socket.connect("localhost", 1338);
 	if (status != sf::Socket::Done)
 	{
 		 std::cout << "Could not connect to server" << std::endl;
 	}
 	else
 	{	
-		for(int i = 0; i < 8; i++)	//random 8 unique code (so we know whos talking to server)
+		for(int i = 0; i < 8; i++)	//random 8 unique code 
+									//(so we know whos talking to server)
 		{
 			ID[i] = static_cast<char>(rand() % 26 + 65);	//random from A - Z
 		}
@@ -107,7 +86,8 @@ int main()
 			}
 			else if(input == "S")
 			{
-	//When signing up make sure username and password are of reasonable length
+				//When signing up make sure username and 
+				//password are of reasonable length
 				do
 				{
 					std::cout << "Enter username: ";
@@ -129,12 +109,26 @@ int main()
 					}
 				}
 				while(password.length() < 5 || password.length() > 20);
-				//do
-				//{
+				do
+				{
+					std::cout << "Request to become 'A'uthor or 'R'eviewer: ";
+					std::cin >> userType;
+					if(userType == "A")
+					{
+						userType = "AUTHOR";
+					}
+					else if(userType == "R")
+					{
+						userType = "REVIEWER";
+					}
+				}
+				while(userType != "AUTHOR" && userType != "REVIWER");
+				do
+				{
 					std::cout << "Email address: ";
 					std::cin >> email;
-				//}
-				//while(checkEmail());
+				}
+				while(email.length() > 254);
 				
 				Ptype = SIGN_UP;
 				
@@ -142,7 +136,7 @@ int main()
 				sf::Packet loginPacket;
 				
 					//Send data to packet
-				loginPacket << ID << Ptype << username << password << email;
+				loginPacket << ID << Ptype << username << password << userType << email;
 				
 					//Send packet to server
 				socket.send(loginPacket);

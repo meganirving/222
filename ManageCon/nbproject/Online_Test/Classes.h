@@ -37,11 +37,13 @@ class Reviewer : public User
 class Admin : public User
 {
 	private:
+		void ManageUsers(sf::TcpSocket&);
+		void UserMenu(sf::TcpSocket&);
+		void getUsers(sf::TcpSocket&, std::string&, std::string&, int&);
 	public:
 		Admin(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Admin(){}
 		void Display(bool&, std::string&, sf::TcpSocket&);
-		void ManageUsers(sf::TcpSocket&);
 };
 
 #endif

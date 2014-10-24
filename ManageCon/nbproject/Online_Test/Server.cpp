@@ -8,9 +8,11 @@
 #include <fstream>
 #include <sstream>
 #include <list>
+#include <vector>
 #include "sharedglobals.h"
 
 std::string check_User(const std::string&, const std::string&, const std::string&);
+std::string check_File(const std::string&, const std::string&, const std::string&, const std::string&);
 std::string get_Users(int&);
 char* ItoA(int);
 
@@ -22,7 +24,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1339) != sf::Socket::Done)
+	if (listener.listen(1338) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -41,9 +43,12 @@ int main()
 	PacketType Ptype;						// Packet type
 	std::string username;					// username for an account
 	std::string password;					// password for an account
-	std::string email = "x";						// email address for an account
-	std::string input;						// input command (server needs to know aswell)
-	std::string userlevel = "-1";			// works out type of user e.g. Author, Admin
+	std::string userType;					// type of user to become
+	std::string email = "x";				// email address for an account
+	std::string input;						// input command (server needs 
+											// to know aswell)
+	std::string userlevel = "-1";			// works out type of user 
+											// e.g. Author, Admin
 	
 	while(1)
 	{
@@ -100,6 +105,7 @@ int main()
 							switch(Ptype)
 							{
 								case 0: 
+								{
 									loginPacket >> username >> password;
 									std::cout << ID <<  " LOGIN REQUEST: " << username << ", " << password << std::endl; 
 									userlevel = check_User(username, password, email);
@@ -108,9 +114,11 @@ int main()
 										// send reply
 									client.send(serverReply);
 									break;
+								}
 								case 1:
-									loginPacket >> username >> password >> email;
-									std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << email<< std::endl; 
+								{
+									loginPacket >> username >> password >> userType >> email;
+									std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << userType << " " << email << std::endl; 
 						//make sure designated username doesn't already exist
 									userlevel = check_User(username, password, email);
 									if(userlevel == "NON-EXISTING")
@@ -122,13 +130,13 @@ int main()
 										{
 											fin.close();
 											fout.open("Users.txt");
-											fout << username << "," << password << "," << email << std::endl;
+											fout << username << "," << password << "," << userType << "," << email << std::endl;
 										}
 										else
 										{	
 											fin.close();
 											fout.open("Users.txt", std::ios::app);
-											fout << username << "," << password << "," << email << std::endl;
+											fout << username << "," << password << "," << userType << "," << email << std::endl;
 										}
 										fout.close();
 									}
@@ -137,16 +145,116 @@ int main()
 										// send reply
 									client.send(serverReply);
 									break;
+								}
 								case 2:
-										std::cout << ID <<  " MANAGE USERS REQUEST" << std::endl; 
-										std::string users;
-										int count = 0;
-										users = get_Users(count);
-										
-										serverReply << Ptype << count << users;
-										
-										client.send(serverReply);
+								{
+									std::cout << ID <<  " MANAGE USERS REQUEST" << std::endl; 
+									std::string users;
+									int count = 0;
+									users = get_Users(count);
+									
+									serverReply << Ptype << count << users;
+									
+									client.send(serverReply);
 									break;
+								}
+								case 3:
+								{
+									std::string userToAccept;
+									std::string tempUser;
+									std::string userToDel;
+									std::string tempLevel;
+									char tempLine[256];
+									std::string tempToAdd;
+									std::vector<std::string> tempFileData;
+									int pos;
+									std::ifstream fin;
+									std::ofstream fout;
+									
+									loginPacket >> userToAccept;
+									
+									fin.open("Users.txt");
+									while(fin.good())
+									{
+										fin.getline(tempLine, 256, ',');
+										tempUser = tempLine;
+										if(tempUser == userToAccept)
+										{
+											fin.getline(tempLine, 256, ',');
+											tempToAdd = tempLine;
+											userToAccept += ',';
+											userToAccept.append(tempToAdd);
+											fin.getline(tempLine, 256, ',');
+											tempLevel = tempLine;
+											userToAccept += ',';
+											fin.getline(tempLine, 256, '\n');
+											tempToAdd = tempLine;
+											userToAccept.append(tempToAdd);
+											std::cout << "USER: " << userToAccept << std::endl;
+											if(tempLevel == "AUTHOR")
+											{
+												
+												fout.open("Authors.txt", std::ios::app);
+												if(fout.good())
+												{
+													fout << userToAccept << std::endl;
+												}
+												fout.close();
+											}
+											else if(tempLevel == "REVIEWER")
+											{
+												fout.open("Reviewers.txt", std::ios::app);
+												if(fout.good())
+												{
+													fout << userToAccept << std::endl;
+												}
+												fout.close();
+											}
+										}
+										else
+										{
+											fin.getline(tempLine, 256, '\n');
+										}
+									}
+									fin.close();
+									
+									fin.open("Users.txt");
+									while(fin.good())
+									{
+										fin.getline(tempLine, 256, '\n');
+										tempUser = tempLine;
+										tempFileData.push_back(tempUser);
+									}
+									for(int i = 0; i < tempFileData.size(); i++)
+									{
+										pos = tempFileData[i].find_first_of(',');
+										tempUser = (tempFileData[i].substr(0, pos));
+										pos = userToAccept.find_first_of(',');
+										userToDel = (userToAccept.substr(0, pos));
+										if(tempUser == userToDel)
+										{
+											tempFileData.erase(tempFileData.begin()+i);
+											i = tempFileData.size();
+										}
+									}
+									fin.close();
+									fout.open("Users.txt");
+									for(int i = 0; i < tempFileData.size(); i++)
+									{
+										fout << tempFileData[i];
+										if(i < tempFileData.size()-1)
+										{
+											fout << '\n';
+										}
+									}
+									fout.close();
+									
+									serverReply << Ptype;
+									
+									client.send(serverReply);
+								
+									break;
+								}
 							}
 						}
 					}
@@ -177,21 +285,46 @@ char* ItoA(int num)
 	//Finds what level of access the user should have
 string check_User(const string& username, const string& password, const string& email)
 {
+		//check admin
+	std::string returnvalue = "NON-EXISTING";
+	std::string fname = "PC_Chair.txt";
+	returnvalue = check_File(fname, username, password, email);
+		//check Reviewers
+	if(returnvalue == "NON-EXISTING")
+	{
+		fname = "Reviewers.txt";
+		check_File(fname, username, password, email);
+	}
+	if(returnvalue == "NON-EXISTING")
+	{
+			//check Authors
+		fname = "Authors.txt";
+		check_File(fname, username, password, email);
+	}
+	if(returnvalue == "NON-EXISTING")
+	{
+			//check Users
+		fname = "Users.txt";
+		check_File(fname, username, password, email);
+	}
+	return returnvalue;
+}
+
+std::string check_File(const std::string& fname, const std::string& username, const std::string& password, const std::string& email)
+{
 	char tempUser[17];		//max username length = 16 + \0
 	char tempPass[21];		//max password length = 20 + \0
-	char tempEmail[254];	//http://stackoverflow.com/questions/386294/what-is-the-maximum-length-of-a-valid-email-address
-	
-		//check admin
-	ifstream fin("PC_Chair.txt");
+	char tempEmail[254];
+	ifstream fin(fname.c_str());
 	if(!fin.good())	//make sure file exists, otherwise create one
 	{
 		fin.close();
-		ofstream fout("PC_Chair.txt", ios::out);
+		ofstream fout(fname.c_str(), ios::out);
 		fout.close();
 	}
 	else			//search through
 	{
-		if(fin.good())	//if instead of while since theres only one admin
+		while(fin.good())	//if instead of while since theres only one admin
 		{
 			fin.getline(tempUser, 256, ',');
 			fin.getline(tempPass, 256, ',');
@@ -201,7 +334,22 @@ string check_User(const string& username, const string& password, const string& 
 			{
 				if(!strcmp(tempPass, password.c_str()))
 				{
-					return "ADMIN";
+					if(fname == "PC_Chair.txt")
+					{
+						return "ADMIN";
+					}
+					else if(fname == "Reviewers.txt")
+					{
+						return "REVIWER";
+					}
+					else if(fname == "Authors.txt")
+					{
+						return "AUTHOR";
+					}
+					else if(fname == "Users.txt")
+					{
+						return "USER";
+					}
 				}
 				return "BAD-PASS";	
 			}
@@ -215,115 +363,13 @@ string check_User(const string& username, const string& password, const string& 
 		}
 	}
 	fin.close();
-		//check Reviewers
-	fin.open("Reviewers.txt", ios::app);
-	if(!fin.good())	//make sure file exists, otherwise create one
-	{
-		fin.close();
-		ofstream fout("Reviewers.txt", ios::out);
-		fout.close();
-	}
-	else			//search through
-	{
-		while(!fin.eof())
-		{
-			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, ',');
-			fin.getline(tempEmail, 256, '\n');
-			if(!strcmp(tempUser, username.c_str()))
-			{
-				if(!strcmp(tempPass, password.c_str()))
-				{
-					return "REVIEWER";
-				}
-				return "BAD-PASS";	
-			}
-			else
-			{
-				if(!strcmp(tempEmail, email.c_str()))
-				{
-					return "EXISTING-EMAIL";
-				}
-			}
-		}
-	}
-	fin.close();
-	
-		//check Authors
-	fin.open("Authors.txt", ios::app);
-	if(!fin.good())	//make sure file exists, otherwise create one
-	{
-		fin.close();
-		ofstream fout("Authors.txt", ios::out);
-		fout.close();
-	}
-	else			//search through
-	{
-		while(!fin.eof())
-		{
-			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, ',');
-			fin.getline(tempEmail, 256, '\n');
-			if(!strcmp(tempUser, username.c_str()))
-			{
-				if(!strcmp(tempPass, password.c_str()))
-				{
-					return "AUTHOR";
-				}
-				return "BAD-PASS";	
-			}
-			else
-			{
-				if(!strcmp(tempEmail, email.c_str()))
-				{
-					return "EXISTING-EMAIL";
-				}
-			}
-		}
-	}
-	fin.close();
-	
-		//check Users
-	fin.open("Users.txt", ios::app);
-	if(!fin.good())	//make sure file exists, otherwise create one
-	{
-		fin.close();
-		ofstream fout("Users.txt", ios::out);
-		fout.close();
-	}
-	else			//search through
-	{
-		while(!fin.eof())
-		{
-			fin.getline(tempUser, 256, ',');
-			fin.getline(tempPass, 256, ',');
-			fin.getline(tempEmail, 256, '\n');
-			if(!strcmp(tempUser, username.c_str()))
-			{
-				if(!strcmp(tempPass, password.c_str()))
-				{
-					return "UNAPPROVED";
-				}
-				return "NON-EXISTING";	
-			}
-			else
-			{
-				if(!strcmp(tempEmail, email.c_str()))
-				{
-					return "EXISTING-EMAIL";
-				}
-			}
-		}
-	}
-	fin.close();
-
 	return "NON-EXISTING";
 }
 
 std::string get_Users(int& counter)
 {
 	ifstream fin;
-	char tempLine[256];
+	char tempLine[1024];
 	char end_of_user = '~';
 	std::string users = "";
 		//check Authors

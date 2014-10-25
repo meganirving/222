@@ -395,7 +395,7 @@ int main()
 using namespace std;
 
 // server:
-void getAllNews(sf::Socket& client)
+void getAllNews(sf::TcpSocket& client)
 {
 	// open file
 	std::string news = "";
@@ -431,12 +431,12 @@ void getAllNews(sf::Socket& client)
 	ifile.close();
 	
 	// send to client
-	sfPacket replyPacket;
-	PacketType pType = GET_PACKET;
+	sf::Packet replyPacket;
+	PacketType pType = GET_NEWS;
 	replyPacket << pType << news;
 	client.send(replyPacket);
 }
-void saveNews(sf::Packet newsPacket)
+void saveNews(sf::Packet& newsPacket)
 {
 	// get the news string
 	std::string news;

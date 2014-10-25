@@ -14,8 +14,8 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
-	std::cout << "|   'S'ubmit work                   |" << std::endl;
-	std::cout << "|   'R'eply to reviews              |" << std::endl;
+	std::cout << "|   'S'ubmit work                   |" << std::endl; // only available in phase 0
+	std::cout << "|   'C'omment on reviews            |" << std::endl; // only available in phase 4
 	std::cout << "|   'Q'uit                          |" << std::endl;
 	notifMenu();
 	std::cout << "|___________________________________|" << std::endl;
@@ -27,7 +27,11 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	}
 	else if(input == "N")
 	{
-		displayNotifs();
+		displayNotifs(socket);
+	}
+	else if (input == "C")
+	{
+		commentMenu(socket);
 	}
 	else if(input == "Q")
 	{

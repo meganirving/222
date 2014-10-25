@@ -31,19 +31,24 @@ class User
 		std::string password;
 		std::string email;
 		std::vector<Notification> notifs;
+		std::vector<std::string> papernames; // for authors: papers they've written. for reviewers: papers they're reviewing
 	public:	
 		User(){}
 		~User(){}
 		 virtual void Display(bool&, std::string&, sf::TcpSocket&){}
 		
 		int unreadNotifs();
-		void notifMenu();
-		void displayNotifs();
+		void displayNotifs(sf::TcpSocket&);
 		void addNotif(std::string);
 		std::string getNotif(Notification);
 		void setAllNotifs(std::string, int);
 		void loadNotifs(sf::TcpSocket& socket);
-		void saveNotifs();
+		void saveNotifs(sf::TcpSocket& socket);
+		
+		// some menus
+		void notifMenu();
+		void reviewCommentMenu(sf::TcpSocket&, std::string);
+		void commentMenu(sf::TcpSocket&);
 		
 		void setUsername(std::string name) { username = name; }
 		

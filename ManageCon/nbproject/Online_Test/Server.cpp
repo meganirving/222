@@ -12,9 +12,13 @@
 #include "sharedglobals.h"
 #include "Date.h"
 
+void submitReview(sf::TcpSocket&, const PacketType&);
+void getAllReviews(sf::TcpSocket&, const PacketType&);
+void addComment(sf::TcpSocket&, const PacketType&);
 void getDeadline(sf::TcpSocket&, const PacketType&);
 void setDeadline(sf::TcpSocket&, const PacketType&, sf::Packet&);
 void loadNotifs(sf::TcpSocket&, sf::Packet&);
+void saveNotifs(sf::TcpSocket&, sf::Packet&);
 std::string check_User(const std::string&, const std::string&, const std::string&);
 std::string check_File(const std::string&, const std::string&, const std::string&, const std::string&);
 std::string get_Users(int&);
@@ -74,7 +78,7 @@ int main()
 	//		-- review inception phase	3	13/11/2014
 	//											close reviewing phase
 	//											reviewers can respond to reviews
-	//		-- rebuddel phase			4	
+	//		-- rebuttal phase			4	
 	//											close reviewing reponses
 	//											authors can respond to reviews
 	//		-- Admin accept phase		5
@@ -351,6 +355,23 @@ int main()
 									setDeadline(client, Ptype, loginPacket);
 									break;
 								}
+								case 8: // SAVE NOTIFICATIONS
+								{
+									saveNotifs(client, loginPacket);
+									break;
+								}
+								case 9: // SAVE COMMENT
+								{
+									setComment(client, loginPacket);
+								}
+								case 10: // SAVE REVIEW
+								{
+									submitReview(client, loginPacket);
+								}
+								case 11: // GET ALL REVIEWS
+								{
+									getReviews(client, loginPacket);
+								}
 							}
 						}
 					}
@@ -464,6 +485,147 @@ void loadNotifs(sf::TcpSocket& client, sf::Packet& NotifPacket)
 	client.send(serverReply);
 }
 
+// save notifs to a text file
+void saveNotifs(sf::TcpSocket& client, sf::Packet& notifPacket)
+{
+	// get the filename and the notifs
+	std::string fname;
+	std::string notifs;
+	packet << fname << notifs;
+	
+	// open file
+	std::ofstream ofile;
+	ofile.open(fname.c_str(), std::ios::out)
+	
+	// write data and close file
+	ofile << notifs;
+	ofile.close();
+}
+
+// saves a review to a text file
+void submitReview(sf::TcpSocket& client, sf::Packet& reviewPacket)
+{
+	// get filename
+	std::string fname;
+	std::string username;
+	std::string review;
+	sf::Packet packet;
+	
+	reviewPacket >> fname >> username >> review;
+	
+	std::ifstream ifile;
+	ifile.open(fname.c_str(), std::ios::in);
+	
+	// file exists
+	if(ifile.is_open())
+	{
+		std::string allreviews;
+		std::string next;
+		
+		// get all the data
+		while (!ifile.eof())
+		{
+			getline(ifile, next);
+			if (!ifile.eof())
+			{
+				allreviews.append(next);
+				allreviews.append("\n");
+			}
+		}
+		ifile.close();
+		
+		// look for matching username
+		int found = allreviews.find(username);
+		// if found
+		if (found != std::string::npos)
+		{
+			int start = allreviews.find_last_of("~", found);
+			std::string before = allreviews.substr(0, start); // get all the reviews before this one's ~
+			int end = allreviews.find_first_of("~", found); // get the end of this review
+			std::string after = allreviews.substr(end+1, allreviews.length()-end); // get all reviews after this one's ~
+			
+			// write to file
+			std::string newreviews = before + review + after;
+			std::ofstream ofile;
+			ofile.open(fname.c_str(), std::ios::out);
+			ofile << newreviews;
+			ofile.close();
+		}
+		// if not found
+		else
+		{
+			std::ofstream ofile;
+			ofile.open(fname.c_str(), std::ios::app);
+			ofile << "\n" << review;
+			ofile.close();
+		}
+	}
+	// file doesn't exist
+	else
+	{
+		// just write the file
+		ifile.close();
+		std::ofstream ofile;
+		ofile.open(fname.c_str(), std::ios::out);
+		ofile << review;
+		ofile.close();
+	}
+}
+
+// gets all reviews from a text file
+void getAllReviews(sf::TcpSocket& client, sf::Packet& reviewPacket)
+{
+	// get filename
+	std::string fname;
+	reviewsPacket >> fname;
+	
+	// open file
+	std::ifstream ifile;
+	ifile.open(fname.c_str(), std::ios::in);
+	
+	std::string next = "";
+	std::string reviews = "";
+	
+	if (ifile.is_open())
+	{
+		// get content into a string
+		while (!ifile.eof())
+		{
+			getline(ifile, next);
+			if (!ifile.eof())
+			{
+				reviews.append(next);
+				reviews.append("\n");
+			}
+		}
+	}
+	else
+	{
+		std::cout << "error: could not open " << fname << std::endl;
+	}
+	
+	// send string to client
+	sf::Packet replyPacket;
+	PacketType pType = GET_REVIEWS;
+	replyPacket << pType << reviews;
+	client.send(replyPacket);
+}
+
+// saves a comment to the review text file
+void addComment(sf::TcpSocket& client, sf::Packet& commentPacket)
+{
+	std::string fname;
+	std::string reviews;
+	
+	// get filename and reviews out of string
+	commentPacket >> fname >> reviews;
+	
+	// write reviews to file
+	std::ofstream ofile;
+	ofile.open(fname.c_str(), std::ios::out);
+	ofile << reviews;
+	ofile.close();
+}
 
 	//just ignore this for now was creating my own itoa function just incase
 char* ItoA(int num)

@@ -10,5 +10,9 @@ const PacketType WORK_SUBMISSION=4;
 const PacketType GET_NOTIFICATION=5;
 const PacketType GET_DEADLINE=6;
 const PacketType SET_DEADLINE=7;
+const PacketType SET_NOTIFICATIONS=8;
+const PacketType SET_COMMENT=9;
+const PacketType SET_REVIEW=10;
+const PacketType GET_REVIEWS=11;
 
 #endif

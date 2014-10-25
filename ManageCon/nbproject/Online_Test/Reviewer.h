@@ -14,6 +14,9 @@ class Reviewer : public User
 		Reviewer(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Reviewer(){}
 		void Display(bool&, std::string&, sf::TcpSocket&);
+		
+		// menu
+		void reviewMenu(sf::TcpSocket&);
 };
 
 #endif

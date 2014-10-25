@@ -4,6 +4,133 @@
 #include <string>
 #include <cstdlib>
 #include "User.h"
+#include "Review.h"
+
+// review menus
+// MENUS
+// for authors and reviewers: go through papers and view reviews
+void User::commentMenu(sf::TcpSocket& socket) 
+{
+	std::vector<std::string> papers;
+	std::vector<std::string>::iterator itr = papers.begin();
+	
+	// display menu until go back
+	char input = 'x';
+	while (input != 'B')
+	{
+		// display paper name and options
+		std::cout << "\n|\t\t" << *itr << "\t\t|";
+		std::cout << "|\t'V'iew Reviews\t\t|" << std::endl;
+		std::cout << "|\t'P'rev Paper\t\t|" << std::endl;
+		std::cout << "|\t'N'ext Paper\t\t|" << std::endl;
+		std::cout << "|\t'B'ack\t\t|" << std::endl;
+		
+		// get input and deal with it
+		std::cin >> input;
+		switch(input)
+		{
+			case 'V': // view reviews of this paper
+			{
+				reviewCommentMenu(socket, *itr);
+				break;
+			}
+			case 'N': // view next paper
+			{
+				std::vector<std::string>::iterator temp = itr;
+				temp++;
+				if (temp != papers.end())
+				{
+					itr = temp;
+				}
+				break;
+			}
+			case 'P': // view prev paper
+			{
+				if (itr != papers.begin())
+				{
+					itr--;
+				}
+				break;
+			}
+		}
+	}
+}
+// for commenting on reviews
+void User::reviewCommentMenu(sf::TcpSocket& socket, std::string papername) 
+{
+	// reviewer variable
+	std::vector<Review> reviews;
+	
+	// get all the reviews for that paper
+	reviews = getAllReviews(socket, id, papername);
+	std::vector<Review>::iterator itr = reviews.begin();
+	
+	// display menu until exit
+	char input = 'x';
+	while (input != 'B')
+	{
+		// display review and comments
+		std::cout << "\n" << itr->reviewName << "'s Review:" << std::endl;
+		itr->display();
+
+		// display options
+		std::cout << "\n|\t'C'omment on review\t|" << std::endl;
+		if (reviews.size() > 1)
+		{
+			std::cout << "|\t'N'ext review\t\t|" << std::endl;
+			std::cout << "|\t'P'rev review\t\t|" << std::endl;
+		}
+		std::cout << "|\t'B'ack\t\t\t|\n" << std::endl;
+
+		// get input
+		std::cin >> input;
+
+		// deal with input
+		switch(input)
+		{
+			case 'C': // gets a comment from the user and adds it to the review
+			{
+				// get comment
+				std::string comment;
+				std::cout << "Write short comment here, using the enter key to finish:" << std::endl;
+				getline(std::cin, comment);
+				getline(std::cin, comment);
+
+				std::string final = "\n\n" + username + ": " + comment;
+
+				// add to list
+				itr->comments.append(final);
+				
+				// save comment
+				addComment(socket, id, username, itr->paperName, reviews);
+				
+				// give feedback and return
+				std::cout << "\nComment successfully added" << std::endl;
+				input = 'B';
+				break;
+			}
+			case 'N': // view next review
+			{
+				std::vector<Review>::iterator temp = itr;
+				temp++;
+				if (temp != reviews.end())
+				{
+					itr = temp;
+				}
+				break;
+			}
+			case 'P': // view prev review
+			{
+				if (itr != reviews.begin())
+				{
+					itr--;
+				}
+				break;
+			}
+		}
+	} // input == 'B', exit
+}
+
 
 // adds a new notification to the user
 void User::addNotif(std::string msg)
@@ -51,7 +178,7 @@ void User::notifMenu()
 }
 
 // called when the user has selected 'n' in their main menu
-void User::displayNotifs()
+void User::displayNotifs(sf::TcpSocket& socket)
 {
 	// get the first unread notification, or final notification in the list
 	std::vector<Notification>::iterator itr = notifs.begin();
@@ -106,7 +233,8 @@ void User::displayNotifs()
 		}
 	}
 	
-	// return to previous menu somehow
+	// save notifs
+	saveNotifs(socket);
 }
 
 // turns a notif into a string
@@ -123,26 +251,25 @@ std::string User::getNotif(Notification notif)
 	return result;
 }
 
-void User::saveNotifs()
+void User::saveNotifs(sf::TcpSocket& socket)
 {
 	// get the filename
 	std::string fname = username;
 	fname.append("_notifs.txt");
 	
-	// open the file
-	std::ofstream ofile;
-	ofile.open(fname.c_str(), std::ofstream::out);
-	
-	// save the notifications to the file
-	std::vector<Notification>::iterator itr = notifs.begin();
-	while (itr != notifs.end())
+	// get all notifs into a string
+	for (int i = 0; i < notifications.size(); i++)
 	{
-		ofile << getNotif(*itr) << std::endl;
-		itr++;
+		notifs.append(notifications[i]);
+		notifs.append("\n");
 	}
 	
-	// close file
-	ofile.close();
+	// send to server
+	std::string notifs;
+	sf::Packet packet;
+	PacketType pType = SET_NOTIFICATIONS;
+	packet << id << pType << fname << notifs;
+	socket.send(packet); 
 }
 
 void User::loadNotifs(sf::TcpSocket& socket)

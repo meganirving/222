@@ -12,9 +12,9 @@
 #include "sharedglobals.h"
 #include "Date.h"
 
-void submitReview(sf::TcpSocket&, const PacketType&);
-void getAllReviews(sf::TcpSocket&, const PacketType&);
-void addComment(sf::TcpSocket&, const PacketType&);
+void submitReview(sf::TcpSocket&, sf::Packet&);
+void getAllReviews(sf::TcpSocket&, sf::Packet&);
+void addComment(sf::TcpSocket&, sf::Packet&);
 void getDeadline(sf::TcpSocket&, const PacketType&);
 void setDeadline(sf::TcpSocket&, const PacketType&, sf::Packet&);
 void loadNotifs(sf::TcpSocket&, sf::Packet&);
@@ -362,7 +362,7 @@ int main()
 								}
 								case 9: // SAVE COMMENT
 								{
-									setComment(client, loginPacket);
+									addComment(client, loginPacket);
 								}
 								case 10: // SAVE REVIEW
 								{
@@ -370,7 +370,7 @@ int main()
 								}
 								case 11: // GET ALL REVIEWS
 								{
-									getReviews(client, loginPacket);
+									getAllReviews(client, loginPacket);
 								}
 							}
 						}
@@ -491,11 +491,11 @@ void saveNotifs(sf::TcpSocket& client, sf::Packet& notifPacket)
 	// get the filename and the notifs
 	std::string fname;
 	std::string notifs;
-	packet << fname << notifs;
+	notifPacket << fname << notifs;
 	
 	// open file
 	std::ofstream ofile;
-	ofile.open(fname.c_str(), std::ios::out)
+	ofile.open(fname.c_str(), std::ios::out);
 	
 	// write data and close file
 	ofile << notifs;
@@ -577,7 +577,7 @@ void getAllReviews(sf::TcpSocket& client, sf::Packet& reviewPacket)
 {
 	// get filename
 	std::string fname;
-	reviewsPacket >> fname;
+	reviewPacket >> fname;
 	
 	// open file
 	std::ifstream ifile;
@@ -699,7 +699,7 @@ std::string check_File(const std::string& fname, const std::string& username, co
 					}
 					else if(fname == "Reviewers.txt")
 					{
-						return "REVIWER";
+						return "REVIEWER";
 					}
 					else if(fname == "Authors.txt")
 					{

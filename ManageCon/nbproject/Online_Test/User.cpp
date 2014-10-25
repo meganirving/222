@@ -63,6 +63,7 @@ void User::reviewCommentMenu(sf::TcpSocket& socket, std::string papername)
 	
 	// get all the reviews for that paper
 	reviews = getAllReviews(socket, id, papername);
+	
 	std::vector<Review>::iterator itr = reviews.begin();
 	
 	// display menu until exit
@@ -256,19 +257,19 @@ void User::saveNotifs(sf::TcpSocket& socket)
 	// get the filename
 	std::string fname = username;
 	fname.append("_notifs.txt");
+	std::string toReturn = "";
 	
 	// get all notifs into a string
-	for (int i = 0; i < notifications.size(); i++)
+	for (int i = 0; i < notifs.size(); i++)
 	{
-		notifs.append(notifications[i]);
-		notifs.append("\n");
+		toReturn.append(notifs[i].message);
+		toReturn.append("\n");
 	}
 	
 	// send to server
-	std::string notifs;
 	sf::Packet packet;
 	PacketType pType = SET_NOTIFICATIONS;
-	packet << id << pType << fname << notifs;
+	packet << id << pType << fname << toReturn;
 	socket.send(packet); 
 }
 

@@ -378,7 +378,8 @@ void submitReview(sf::TcpSocket& socket, std::string ID, std::string username, s
 		
 		// send it to the server
 		PacketType ptype = SET_REVIEW;
-		sf::Packet packet << ID << ptype << review;
+		sf::Packet packet;
+		packet << ID << ptype << review;
 		socket.send(packet);
 	}
 	
@@ -394,7 +395,7 @@ std::vector<Review> getAllReviews(sf::TcpSocket& socket, std::string ID, std::st
 	PacketType pType = GET_REVIEWS;
 	
 	sf::Packet reviewsPacket;
-	reviewsPacket << ID, pType << fname;
+	reviewsPacket << ID << pType << fname;
 	socket.send(reviewsPacket);
 	
 	// handle response from server
@@ -430,7 +431,7 @@ std::vector<Review> getAllReviews(sf::TcpSocket& socket, std::string ID, std::st
 void addComment(sf::TcpSocket& socket, std::string ID, std::string username, std::string papername, std::vector<Review> reviews)
 {
 	//Create Packet
-	PacketType Ptype = SET_COMMENT;
+	PacketType pType = SET_COMMENT;
 	sf::Packet commentPacket;
 	
 	// send data to server

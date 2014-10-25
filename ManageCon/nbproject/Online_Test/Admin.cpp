@@ -16,7 +16,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
 	std::cout << "|   'M'anage Users                  |" << std::endl;
-	std::cout << "|   'A'ccepted Papers               |" << std::endl;
+	std::cout << "|   'A'ccept Papers                 |" << std::endl;
 	std::cout << "|   'S'et Deadlines                 |" << std::endl;
 	notifMenu();
 	std::cout << "|   'Q'uit                          |" << std::endl;
@@ -29,7 +29,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	}
 	else if(input == "N")
 	{
-		displayNotifs();
+		displayNotifs(socket);
 	}
 	else if(input == "S")
 	{

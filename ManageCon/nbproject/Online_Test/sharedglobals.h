@@ -14,5 +14,7 @@ const PacketType SET_NOTIFICATIONS=8;
 const PacketType SET_COMMENT=9;
 const PacketType SET_REVIEW=10;
 const PacketType GET_REVIEWS=11;
+const PacketType GET_NEWS=12;
+const PacketType SET_NEWS=13;
 
 #endif

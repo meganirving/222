@@ -12,6 +12,8 @@
 #include "sharedglobals.h"
 #include "Date.h"
 
+void getAllNews(sf::TcpSocket&);
+void saveNews(sf::Packet&);
 void submitReview(sf::TcpSocket&, sf::Packet&);
 void getAllReviews(sf::TcpSocket&, sf::Packet&);
 void addComment(sf::TcpSocket&, sf::Packet&);
@@ -372,6 +374,14 @@ int main()
 								{
 									getAllReviews(client, loginPacket);
 								}
+								case 12: // GET THE NEWSFEED
+								{
+									getAllNews(client);
+								}
+								case 13: // SAVE THE NEWSFEED
+								{
+									saveNews(loginPacket);
+								}
 							}
 						}
 					}
@@ -383,6 +393,61 @@ int main()
 }
 
 using namespace std;
+
+// server:
+void getAllNews(sf::Socket& client)
+{
+	// open file
+	std::string news = "";
+	std::string next = "";
+	std::ifstream ifile;
+	ifile.open("newsfeed.txt", std::ios::in);
+	
+	// if file exists
+	if (ifile.is_open())
+	{
+		// get the file out
+		while(!ifile.eof())
+		{
+			getline(ifile, next);
+			if (!ifile.eof())
+			{
+				news.append(next);
+				news.append("\n");
+			}
+		}
+	}
+	// no news yet, so add news and..return that?
+	else
+	{
+		std::ofstream ofile;
+		ofile.open("newsfeed.txt", std::ios::out);
+		news = "A conference is coming!*\n";
+		ofile << news;
+		ofile.close();
+	}
+
+	// close input file
+	ifile.close();
+	
+	// send to client
+	sfPacket replyPacket;
+	PacketType pType = GET_PACKET;
+	replyPacket << pType << news;
+	client.send(replyPacket);
+}
+void saveNews(sf::Packet newsPacket)
+{
+	// get the news string
+	std::string news;
+	newsPacket >> news;
+
+	// write to the file and close it
+	std::ofstream ofile;
+	ofile.open("newsfeed.txt", std::ios::out);
+	ofile << news << std::endl;
+	ofile.close();
+}
 
 // change current deadline settings
 void setDeadline(sf::TcpSocket& client, const PacketType& Ptype, sf::Packet& DeadlinePacket)

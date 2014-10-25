@@ -11,6 +11,7 @@
 #include "Author.h"
 #include "Reviewer.h"
 #include "Admin.h"
+#include "Newsfeed.h"
 //#include "Colours.h"
 
 	//Just a simple GUI function to make sure the mouse is on screen when checking mouse events
@@ -48,12 +49,8 @@ int main()
 			ID[i] = static_cast<char>(rand() % 26 + 65);	//random from A - Z
 		}
 		
-			//Initial news feed, will need to connect to server in future
-		std::cout << "!------------ NEWS FEED ------------!" << std::endl;
-		std::cout << "|                                   |" << std::endl;
-		std::cout << "|               INFO                |" << std::endl;
-		std::cout << "|                                   |" << std::endl;
-		std::cout << "!-----------------------------------!\n" << std::endl;
+		// get the latest news and display it
+		displayNews(getNews(socket, ID));
 		
 		bool signedIn = false;	//when signed in will change menu
 		

@@ -11,6 +11,7 @@
 #include "Author.h"
 #include "Reviewer.h"
 #include "Admin.h"
+//#include "Colours.h"
 
 	//Just a simple GUI function to make sure the mouse is on screen when checking mouse events
 bool in_Window(const sf::Mouse&, const sf::Window&, const sf::Vector2<int>&);
@@ -34,7 +35,7 @@ int main()
 
 		//Connect to server using TCP type connection
 	sf::TcpSocket socket;
-	sf::Socket::Status status = socket.connect("localhost", 1338);
+	sf::Socket::Status status = socket.connect("localhost", 1337);
 	if (status != sf::Socket::Done)
 	{
 		 std::cout << "Could not connect to server" << std::endl;
@@ -155,49 +156,53 @@ int main()
 			{
 				std::cout << "Invalid Input" << std::endl;
 			}	
-				//Create packet to recieve data from server
-			sf::Packet serverReply;
 			
-			if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+			if(input == "L" || input == "S")
 			{
-					//push data from server reply into variables
-				serverReply >> Ptype;
-				switch(Ptype)
+					//Create packet to recieve data from server
+				sf::Packet serverReply;
+			
+				if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
 				{
-					case 0:
-						serverReply >> userlevel;
-						if(userlevel == "ADMIN" || userlevel == "REVIEWER" || userlevel == "AUTHOR")
-						{
-							signedIn = true;
-						}
-						else if(userlevel == "UNAPPROVED")
-						{
-							std::cout << "Still waiting admin approval" << std::endl;
-						}
-						else if(userlevel == "BAD-PASS")
-						{
-							std::cout << "Invalid password" << std::endl;
-						}
-						else
-						{
-							std::cout << "Non-existing account" << std::endl;
-						}
-						break;
-					case 1:
-						serverReply >> userlevel;
-						if(userlevel == "NON-EXISTING")
-						{
-							std::cout << "Created account now awaiting approval" << std::endl;
-						}
-						else if(userlevel == "EXISTING-EMAIL")
-						{
-							std::cout << "Email account already being used" << std::endl;
-						}
-						else
-						{
-							std::cout << "Account name already exists" << std::endl;
-						}
-						break;
+						//push data from server reply into variables
+					serverReply >> Ptype;
+					switch(Ptype)
+					{
+						case 0:
+							serverReply >> userlevel;
+							if(userlevel == "ADMIN" || userlevel == "REVIEWER" || userlevel == "AUTHOR")
+							{
+								signedIn = true;
+							}
+							else if(userlevel == "UNAPPROVED")
+							{
+								std::cout << "Still waiting admin approval" << std::endl;
+							}
+							else if(userlevel == "BAD-PASS")
+							{
+								std::cout << "Invalid password" << std::endl;
+							}
+							else
+							{
+								std::cout << "Non-existing account" << std::endl;
+							}
+							break;
+						case 1:
+							serverReply >> userlevel;
+							if(userlevel == "NON-EXISTING")
+							{
+								std::cout << "Created account now awaiting approval" << std::endl;
+							}
+							else if(userlevel == "EXISTING-EMAIL")
+							{
+								std::cout << "Email account already being used" << std::endl;
+							}
+							else
+							{
+								std::cout << "Account name already exists" << std::endl;
+							}
+							break;
+					}
 				}
 			}
 		}

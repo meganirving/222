@@ -1,4 +1,5 @@
 #include "Admin.h"
+#include "Colours.h"
 
 Admin::Admin(const std::string& ID, const std::string& name, const std::string& pass, const std::string& myemail)
 {
@@ -15,8 +16,8 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
 	std::cout << "|   'M'anage Users                  |" << std::endl;
-	std::cout << "|	  'A'ccepted Papers               |" << std::endl;
-	std::cout << "|   'S'et deadlines            	  |" << std::endl;
+	std::cout << "|   'A'ccepted Papers               |" << std::endl;
+	std::cout << "|   'S'et Deadlines                 |" << std::endl;
 	notifMenu();
 	std::cout << "|   'Q'uit                          |" << std::endl;
 	std::cout << "|___________________________________|" << std::endl;
@@ -29,6 +30,10 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	else if(input == "N")
 	{
 		displayNotifs();
+	}
+	else if(input == "S")
+	{
+		set_Deadline(socket);
 	}
 	else if(input == "Q")
 	{
@@ -46,7 +51,7 @@ void Admin::ManageUsers(sf::TcpSocket& socket)
 	int usernumber = -1;
 	
 	
-	while(input != "Q")
+	while(input != "B")
 	{
 		getUsers(socket, users, levels, userCount);
 		std::string myusers = users;
@@ -55,11 +60,11 @@ void Admin::ManageUsers(sf::TcpSocket& socket)
 		std::cout << "_____________________________________" << std::endl;
 		std::cout << "|            User Menu              |" << std::endl;
 		std::cout << "|   '#' Accept user number          |" << std::endl;
-		std::cout << "|   'Q'uit                          |" << std::endl;
+		std::cout << "|   'B'ack                          |" << std::endl;
 		std::cout << "|___________________________________|" << std::endl;
 		std::cout << "\n--> ";
 		std::cin >> input;
-		if(input != "Q")
+		if(input != "B")
 		{
 			usernumber = atoi(input.c_str());
 			if(usernumber <= userCount && usernumber > 0)
@@ -110,10 +115,6 @@ void Admin::ManageUsers(sf::TcpSocket& socket)
 			{
 				std::cout << "Invalid user number" << std::endl;
 			}
-		}
-		else
-		{
-			std::cout << "Quiting" << std::endl;
 		}
 	}
 }
@@ -190,6 +191,126 @@ void Admin::getUsers(sf::TcpSocket& socket, std::string& tempUsers, std::string&
 		tempLevels += ',';
 	}
 	std::cout << "------------------------------------------------" << std::endl;
+}
+
+void Admin::set_Deadline(sf::TcpSocket& socket)
+{
+	std::string input = "x";
+	int phase;
+	std::string deadLine;
+
+	while(input != "B")
+	{
+		PacketType Ptype = GET_DEADLINE;
+			//Create Packet
+		sf::Packet deadLinePacket;
+	
+			//Send data to packet
+		deadLinePacket << id << Ptype;
+	
+			//Send packet to server
+		socket.send(deadLinePacket);	
+	
+		sf::Packet serverReply;
+	
+		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+		{
+				//push data from server reply into variables
+			serverReply >> Ptype;
+			if(Ptype == 6)
+			{
+				serverReply >> phase >> deadLine;
+			}
+			else
+			{
+				std::cout << "EXPECTED: GET_DEADLINE RECIEVED: " << Ptype << std::endl;
+			}
+		}
+		std::string currentPhase;
+		switch(phase)
+		{
+			case 0:
+				currentPhase = "Submission";
+				break;
+			case 1:
+				currentPhase = "Bidding";
+				break;
+			case 2:
+				currentPhase = "Reviewing";
+				break;
+			case 3:
+				currentPhase = "Comments";
+				break;
+			case 4:
+				currentPhase = "Rebuttal";
+				break;
+			case 5:
+				currentPhase = "Accepting";
+				break;
+			case 6:
+				currentPhase = "Conference";
+				break;
+		}
+		
+		Date deadLineDate(deadLine);
+	
+		std::cout << "_____________________________________" << std::endl;
+		std::cout << "|             Phase Menu            |" << std::endl;
+		std::cout << "| Current phase: " << std::setw(19) << std::setfill(' ') << std::left << currentPhase  << "|" << std::endl;
+		std::cout << "| Current Deadline: " << deadLineDate << "      |" << std::endl;
+		std::cout << "|                                   |" << std::endl;
+		std::cout << "|  'P'ush to next phase             |" << std::endl;
+		if(phase != -1)
+		{
+		std::cout << "|  'S'et deadline date              |" << std::endl;
+		}
+		std::cout << "|  'B'ack                           |" << std::endl;
+		std::cout << "|___________________________________|" << std::endl;
+		std::cout << "\n--> ";
+		std::cin >> input;
+		
+		if(input == "P")
+		{
+			phase++;
+			if(phase == 7)
+			{
+				phase = 0;
+			}
+		}	
+		else if(input == "S")
+		{
+			std::cout << "Enter new date(DD/MM/YYYY): ";
+			std::cin >> deadLine;
+		}
+		
+		if(input == "P" || input == "S")
+		{
+			PacketType Ptype = SET_DEADLINE;
+				//Create Packet
+			sf::Packet deadLinePacket;
+
+				//Send data to packet
+			deadLinePacket << id << Ptype << phase << deadLine << input;
+
+				//Send packet to server
+			socket.send(deadLinePacket);	
+
+			sf::Packet serverReply;
+			if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+			{
+					//push data from server reply into variables
+				serverReply >> Ptype;
+				if(Ptype == 7)
+				{
+					std::cout << text::styleString("Phase has been updated", text::Colour_Green, text::Effect_Bold, text::Bkg_None) << std::endl;
+				}
+				else
+				{
+					std::cout << "EXPECTED: GET_DEADLINE RECIEVED: " << Ptype << std::endl;
+				}
+			}
+		}
+	}
 }
 
 //		SYSTEM

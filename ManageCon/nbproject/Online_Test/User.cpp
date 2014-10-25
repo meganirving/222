@@ -165,8 +165,6 @@ void User::loadNotifs(sf::TcpSocket& socket)
 		if(pType == GET_NOTIFICATION)
 		{
 			serverReply >> count >> notifs;
-			
-			std::cout << "GOT: " << count << " " << notifs << std::endl;
 		}
 		else
 		{
@@ -181,7 +179,6 @@ void User::loadNotifs(sf::TcpSocket& socket)
 void User::setAllNotifs(std::string nots, int count)
 {
 	int amt = 0;
-	std::cout << count << std::endl;
 	while (amt < count)
 	{
 		// get the next notif in string format

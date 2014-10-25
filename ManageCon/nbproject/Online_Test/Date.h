@@ -6,28 +6,35 @@
 //
 //
 
-#ifndef ____Date__
-#define ____Date__
+#ifndef Date_H
+#define Date_H
 
 #include <iostream>
 #include <time.h>
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <cstdlib>
 
-class Date {
-private:
-    int day;
-    int month;
-    int year;
-    std::string deadline;
-public:
-    Date(){}
-    ~Date(){}
-    void setDeadline(std::string);
-    void getCurrentDate();
-    void getDeadline();
+class Date 
+{
+	private:
+		int day;
+		int month;
+		int year;
+	public:
+		Date(){}
+		Date(int,int,int);
+		Date(std::string);
+		~Date(){}
+		void setDeadline(std::string);
+		void getCurrentDate();
+		bool operator>=(const Date&);
+		Date& operator+=(const int&);
+		std::string toString();
+		void toDate(std::string);
+		friend std::ostream& operator<<(std::ostream&, const Date&);
 };
 
 
-#endif /* defined(____Date__) */
+#endif /* defined(Date_H) */

@@ -6,6 +6,7 @@
 #include <SFML/Network.hpp>
 #include "sharedglobals.h"
 #include "User.h"
+#include "Date.h"
 
 class Admin : public User
 {
@@ -16,6 +17,7 @@ class Admin : public User
 		Admin(const std::string&, const std::string&, const std::string&, const std::string&);
 		~Admin(){}
 		void Display(bool&, std::string&, sf::TcpSocket&);
+		void set_Deadline(sf::TcpSocket&);
 };
 
 #endif

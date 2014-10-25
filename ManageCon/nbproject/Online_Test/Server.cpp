@@ -10,7 +10,10 @@
 #include <list>
 #include <vector>
 #include "sharedglobals.h"
+#include "Date.h"
 
+void getDeadline(sf::TcpSocket&, const PacketType&);
+void setDeadline(sf::TcpSocket&, const PacketType&, sf::Packet&);
 void loadNotifs(sf::TcpSocket&, sf::Packet&);
 std::string check_User(const std::string&, const std::string&, const std::string&);
 std::string check_File(const std::string&, const std::string&, const std::string&, const std::string&);
@@ -25,7 +28,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1338) != sf::Socket::Done)
+	if (listener.listen(1337) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -50,6 +53,39 @@ int main()
 											// to know aswell)
 	std::string userlevel = "-1";			// works out type of user 
 											// e.g. Author, Admin
+	
+	//		SYSTEM
+	//
+	//	Send automatic emails
+	//	Send notifications
+	//	Hand out papers based on keywords and bids
+	//	Keep track of phases				
+	//-------------------------------------------------------------------------
+	//										Admin opens submission phase
+	//										Date DD/MM/YYYY
+	//		-- submission phase			0	23/10/2014		
+	//											admin opens up submission phase
+	//		-- bidding phase			1	30/10/2014
+	//											submission end deadline reached
+	//											bidding phase
+	//		-- reviewing phase			2	06/11/2014
+	//											close bidding phase
+	//											begin reviewing phase	
+	//		-- review inception phase	3	13/11/2014
+	//											close reviewing phase
+	//											reviewers can respond to reviews
+	//		-- rebuddel phase			4	
+	//											close reviewing reponses
+	//											authors can respond to reviews
+	//		-- Admin accept phase		5
+	//											close responses
+	//											accept paper
+	//		-- Conference				6		
+	//											if paper accepted present at
+	//											conference 
+	//-------------------------------------------------------------------------
+	//	Update newsfeed
+	//
 	
 	while(1)
 	{
@@ -295,10 +331,25 @@ int main()
 										//is completely transfered
 										max_size += sizeof(Buffer);
 									}
+									break;
 								}
 								case 5:	//NOTIFIES
 								{
+									std::cout << ID << " LOAD NOTIFICATIONS REQUEST" <<std::endl;
 									loadNotifs(client, loginPacket);
+									break;
+								}
+								case 6: //GET DEADLINES
+								{
+									std::cout << ID << " GET DEADLINES REQUEST" <<std::endl;
+									getDeadline(client, Ptype);
+									break;
+								}
+								case 7: //SET DEADLINES
+								{
+									std::cout << ID;
+									setDeadline(client, Ptype, loginPacket);
+									break;
 								}
 							}
 						}
@@ -311,6 +362,62 @@ int main()
 }
 
 using namespace std;
+
+// change current deadline settings
+void setDeadline(sf::TcpSocket& client, const PacketType& Ptype, sf::Packet& DeadlinePacket)
+{
+	std::string input;
+	int phase;
+	std::string deadLineDate;
+	Date tempDate(deadLineDate);
+	
+	DeadlinePacket >> phase >> deadLineDate >> input;
+	std::cout << " SET DEADLINES REQUEST: " << phase << " " << tempDate << std::endl;
+	if(input == "P")
+	{
+		tempDate.getCurrentDate();
+		tempDate += 7;
+		deadLineDate = tempDate.toString();
+	}
+	std::ofstream fout;
+	fout.open("Settings.txt");
+	fout << phase << " " << deadLineDate;
+	fout.close();
+	
+	sf::Packet serverReply;
+	serverReply << Ptype;								
+	client.send(serverReply);
+}
+
+// load Deadlines from a text file
+void getDeadline(sf::TcpSocket& client, const PacketType& Ptype)
+{
+	std::ifstream fin;
+	int phase;
+	std::string deadLineDate;
+	fin.open("Settings.txt");
+	
+	if(fin.good())
+	{
+		fin >> phase;
+		fin >> deadLineDate;
+		fin.close();
+	}
+	else
+	{
+		fin.close();
+		phase = -1;
+		deadLineDate = "00/00/0000";
+		std::ofstream fout;
+		fout.open("Settings.txt");
+		fout << phase << " " << deadLineDate;
+		fout.close();
+	}
+	
+	sf::Packet serverReply;
+	serverReply << Ptype << phase << deadLineDate;								
+	client.send(serverReply);
+}
 
 // loads notifs from a text file
 void loadNotifs(sf::TcpSocket& client, sf::Packet& NotifPacket)

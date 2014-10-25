@@ -8,5 +8,7 @@ const PacketType GET_USERS=2;
 const PacketType ACCEPT_USER=3;
 const PacketType WORK_SUBMISSION=4;
 const PacketType GET_NOTIFICATION=5;
+const PacketType GET_DEADLINE=6;
+const PacketType SET_DEADLINE=7;
 
 #endif

@@ -12,16 +12,32 @@ void Reviewer::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket
 {
 	loadNotifs(socket);
 
+	// header
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
-	std::cout << "|   'R'eview works                  |" << std::endl;
-	std::cout << "|   'S'et prefences                 |" << std::endl;
-	std::cout << "|   'B'id on papers                 |" << std::endl;
-	std::cout << "|   'C'omment on reviews            |" << std::endl;
+	
+	// conditional options
+	if (currPhase == 1) // bidding phase
+	{
+		std::cout << "|   'B'id on papers                 |" << std::endl;
+	}
+	if (currPhase == 2) // review phase
+	{
+		std::cout << "|   'R'eview works                  |" << std::endl;
+	}
+	if (currPhase == 3)
+	{
+		std::cout << "|   'C'omment on reviews            |" << std::endl;
+	}
+	
+	// footer
 	notifMenu();
+	std::cout << "|   'S'et prefences                 |" << std::endl;
 	std::cout << "|   'Q'uit                          |" << std::endl;
 	std::cout << "|___________________________________|" << std::endl;
 	std::cout << "\n--> ";
+	
+	// handle input
 	std::cin >> input;
 	if(input == "Q")
 	{
@@ -31,11 +47,11 @@ void Reviewer::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket
 	{
 		displayNotifs(socket);
 	}
-	else if (input == "R")
+	else if (input == "R" && currPhase == 2)
 	{
 		reviewMenu(socket);
 	}
-	else if (input == "C")
+	else if (input == "C" && currPhase == 3)
 	{
 		commentMenu(socket);
 	}

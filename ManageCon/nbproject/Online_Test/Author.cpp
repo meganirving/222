@@ -12,16 +12,29 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
 
+	// header
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
-	std::cout << "|   'S'ubmit work                   |" << std::endl; // only available in phase 0
-	std::cout << "|   'C'omment on reviews            |" << std::endl; // only available in phase 4
-	std::cout << "|   'Q'uit                          |" << std::endl;
+	
+	// conditional options
+	if (currPhase == 0) // submission phase
+	{
+		std::cout << "|   'S'ubmit work                   |" << std::endl;
+	}
+	if (currPhase == 4) // rebuttal phase
+	{
+		std::cout << "|   'C'omment on reviews            |" << std::endl;
+	}
+	
+	// footer
 	notifMenu();
+	std::cout << "|   'Q'uit                          |" << std::endl;
 	std::cout << "|___________________________________|" << std::endl;
 	std::cout << "\n--> ";
+	
+	// handle input
 	std::cin >> input;
-	if(input == "S")
+	if(input == "S" && currPhase == 0)
 	{
 		SubmitWork();
 	}
@@ -29,7 +42,7 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	{
 		displayNotifs(socket);
 	}
-	else if (input == "C")
+	else if (input == "C" && currPhase == 4)
 	{
 		commentMenu(socket);
 	}
@@ -38,6 +51,8 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 		signedIn = false;
 	}
 }
+
+// submits a work
 void Author::SubmitWork()
 {
 	std::string ID = "01010101";

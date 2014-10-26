@@ -13,15 +13,25 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
 	
+	// header
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
 	std::cout << "|   'M'anage Users                  |" << std::endl;
-	std::cout << "|   'A'ccept Papers                 |" << std::endl;
+	
+	// conditional
+	if (currPhase == 5)
+	{
+		std::cout << "|   'A'ccept Papers                 |" << std::endl;
+	}
+	
+	// footer
 	std::cout << "|   'S'et Deadlines                 |" << std::endl;
 	notifMenu();
 	std::cout << "|   'Q'uit                          |" << std::endl;
 	std::cout << "|___________________________________|" << std::endl;
 	std::cout << "\n--> ";
+	
+	// handle input
 	std::cin >> input;
 	if(input == "M")
 	{

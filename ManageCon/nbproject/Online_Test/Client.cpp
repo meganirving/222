@@ -220,6 +220,10 @@ int main()
 			{
 				player = new Admin(ID, username, password, email);
 			}
+			// get the current phase
+			player->getPhase();
+			
+			// display the menu
 			player->Display(signedIn, input, socket);
 			
 		}

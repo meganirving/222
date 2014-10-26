@@ -12,6 +12,7 @@
 #include "sharedglobals.h"
 #include "Date.h"
 
+void getPhase(sf::TcpSocket&, sf::PacketType&);
 void getAllNews(sf::TcpSocket&);
 void saveNews(sf::Packet&);
 void submitReview(sf::TcpSocket&, sf::Packet&);
@@ -382,6 +383,10 @@ int main()
 								{
 									saveNews(loginPacket);
 								}
+								case 14: // GET THE CURRENT PHASE
+								{
+									getPhase(client, Ptype);
+								}
 							}
 						}
 					}
@@ -502,6 +507,36 @@ void getDeadline(sf::TcpSocket& client, const PacketType& Ptype)
 	
 	sf::Packet serverReply;
 	serverReply << Ptype << phase << deadLineDate;								
+	client.send(serverReply);
+}
+
+// load the phase from a text file
+void getPhase(sf::TcpSocket& client, const PacketType& Ptype)
+{
+	std::ifstream fin;
+	int phase;
+	std::string deadLineDate;
+	fin.open("Settings.txt");
+	
+	if(fin.good())
+	{
+		fin >> phase;
+		fin >> deadLineDate;
+		fin.close();
+	}
+	else
+	{
+		fin.close();
+		phase = -1;
+		deadLineDate = "00/00/0000";
+		std::ofstream fout;
+		fout.open("Settings.txt");
+		fout << phase << " " << deadLineDate;
+		fout.close();
+	}
+	
+	sf::Packet serverReply;
+	serverReply << Ptype << phase;								
 	client.send(serverReply);
 }
 

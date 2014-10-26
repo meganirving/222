@@ -31,6 +31,7 @@ class User
 		std::string password;
 		std::string email;
 		std::vector<Notification> notifs;
+		int currPhase;
 		std::vector<std::string> papernames; // for authors: papers they've written. for reviewers: papers they're reviewing
 	public:	
 		User(){}
@@ -51,6 +52,7 @@ class User
 		void commentMenu(sf::TcpSocket&);
 		
 		void setUsername(std::string name) { username = name; }
+		void getPhase();
 		
 		// for the system:
 		// find the user with this id, and call addNotif(msg) on them

@@ -16,5 +16,6 @@ const PacketType SET_REVIEW=10;
 const PacketType GET_REVIEWS=11;
 const PacketType GET_NEWS=12;
 const PacketType SET_NEWS=13;
+const PacketType GET_PHASE=14;
 
 #endif

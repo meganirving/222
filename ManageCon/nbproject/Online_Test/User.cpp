@@ -133,6 +133,24 @@ void User::reviewCommentMenu(sf::TcpSocket& socket, std::string papername)
 }
 
 
+// gets the current phase
+void User::getPhase()
+{
+	// send query to server
+	sf::Packet phasePacket;
+	PacketType pType = GET_PHASE;
+	newsPacket << ID << pType;
+	socket.send(phasePacket);
+	
+	// handle the response
+	sf::Packet serverReply;
+	if(socket.receive(serverReply) == sf::Socket::Done)
+	{
+		serverReply >> currPhase;
+	}
+}
+
+
 // adds a new notification to the user
 void User::addNotif(std::string msg)
 {

@@ -1,17 +1,19 @@
 to do!
+. automatic phase swapping (deadlines)
+. email notifications
+. bidding on papers
+. server distributing papers to reviewers
+. actually posting news items
+. sending notifications
+
+
+to done!
+. create a to do list
 . create base project
 . client/server framework
 . logging in & out
 . different user types see different menus
 . uploading files to server
-. editing files?
 . downloading files from server (+ appending files)
 . swap between phases - able to do different things in different phases
-. automatic phase swapping (deadlines)
 . notifications
-. email notifications
-. other phases  
-
-
-to done!
-. create a to do list

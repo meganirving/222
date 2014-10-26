@@ -50,7 +50,10 @@ int main()
 		}
 		
 		// get the latest news and display it
-		displayNews(getNews(socket, ID));
+		Newsfeed news = getNews(socket, ID);
+		displayNews(news);
+
+		//displayNews(getNews(socket, ID));
 		
 		bool signedIn = false;	//when signed in will change menu
 		
@@ -221,7 +224,7 @@ int main()
 				player = new Admin(ID, username, password, email);
 			}
 			// get the current phase
-			player->getPhase();
+			player->getPhase(socket);
 			
 			// display the menu
 			player->Display(signedIn, input, socket);

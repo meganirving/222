@@ -6,3 +6,4 @@ g++ Reviewer.cpp -c
 g++ Admin.cpp -c
 g++ Date.cpp -c
 g++ Review.cpp -c
+g++ Newsfeed.cpp -c

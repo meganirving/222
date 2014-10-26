@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
-#include "newsfeed.h"
+
+#include "Newsfeed.h"
 
 // newsfeed -> string -> newsfeed
 Newsfeed stringToNews(std::string feed)
@@ -47,7 +48,7 @@ void displayNews(Newsfeed feed)
 	}
 }
 
-Newsfeed getNews(sf::Socket& socket, std::string ID)
+Newsfeed getNews(sf::TcpSocket& socket, std::string ID)
 {
 	// send off a request to the server
 	sf::Packet newsPacket;
@@ -68,7 +69,7 @@ Newsfeed getNews(sf::Socket& socket, std::string ID)
 }
 
 // update newsfeed with the news string, save to file
-void addNews(std::string news, sf::Socket& socket, std::string ID)
+void addNews(std::string news, sf::TcpSocket& socket, std::string ID)
 {
 	// get all the news
 	Newsfeed newsfeed = getNews(socket, ID);

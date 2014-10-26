@@ -134,12 +134,12 @@ void User::reviewCommentMenu(sf::TcpSocket& socket, std::string papername)
 
 
 // gets the current phase
-void User::getPhase()
+void User::getPhase(sf::TcpSocket& socket)
 {
 	// send query to server
 	sf::Packet phasePacket;
 	PacketType pType = GET_PHASE;
-	newsPacket << ID << pType;
+	phasePacket << id << pType;
 	socket.send(phasePacket);
 	
 	// handle the response

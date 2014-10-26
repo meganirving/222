@@ -12,7 +12,7 @@
 #include "sharedglobals.h"
 #include "Date.h"
 
-void getPhase(sf::TcpSocket&, sf::PacketType&);
+void getPhase(sf::TcpSocket&, const PacketType&);
 void getAllNews(sf::TcpSocket&);
 void saveNews(sf::Packet&);
 void submitReview(sf::TcpSocket&, sf::Packet&);

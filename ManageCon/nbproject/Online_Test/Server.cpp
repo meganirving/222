@@ -36,7 +36,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1339) != sf::Socket::Done)
+	if (listener.listen(1336) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -303,57 +303,66 @@ int main()
 								}
 								case 4:	//SUBMIT PDF FILE
 								{
-										//std::cout << "REDCIEVED PACKET" << std::endl;
 									int size = 0, size2 = 0, max_size = 0;
-									std::string username;
-									std::string filename;
-									std::string filename2;
+									std::string username, filename, filename2;
 									std::string keywords[5];
 									std::size_t received = 0;
-
-									char *Buffer = new char[4096];
-loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
+									char* Buffer;
 									
-									sf::Packet checker;
-									checker << Ptype;
+									//GetData from packet
+									loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> 
+									keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
+						
+									//sf::Packet checker;
+									//checker << Ptype;
 									
-									client.send(checker);
+									//client.send(checker);
 									
 									std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
 									std::cout << ID << " FILE SUBMISSION: " << filename2 << " has a file size of: " << size2 <<std::endl;
 								
 									//We will have to create a directory on the pc we use for the presentation
 									// the commented out strings are specific to my home pc
-									std::ofstream username_file;
-									std::ofstream filename_database;
-									std::string user_file = username + "_submissions.txt";
 									
+									std::ofstream username_file;//Keeps track of all files a user has submitted by username
+									std::ofstream filename_database; //Records all filenames in the file structure
+
+									std::string user_file = username + "_submissions.txt";
+									//Open both files
 									username_file.open(username.c_str(), std::ios::app);
 									filename_database.open("filenames.txt", std::ios::app);	
-
+									//Add filename to filenames.txt
 									username_file << filename << std::endl;
-									
-									std::string buffer = filename;
+									username_file.close();
 
-
+									std::string buffer = filename;//remove .pdf from filename
 									buffer.erase(buffer.end()-4, buffer.end());
 									
-									
+									//Create keywords filename
 									std::string keyname = buffer + "_keywords.txt";	
+
 									std::ofstream outfile;
-									std::ofstream keyfile;
-									
-									outfile.open(filename.c_str(), std::ofstream::binary);
-									keyfile.open(keyname.c_str(), std::ios::app);
+									std::ofstream outfile2;
+									std::ofstream keywords_file;
+									//Open new pdf files
+									std::string paper1_name = "\\test\\"+filename;
+									std::string paper2_name = "\\test\\"+filename2;
+
+									outfile.open(paper1_name.c_str(), std::ofstream::binary);
+									outfile2.open(paper2_name.c_str(), std::ofstream::binary);
+									keywords_file.open(keyname.c_str(), std::ios::app);
 										
 									for(int i = 0; i < 5; i++)
-									{
-										keyfile << keywords[i] << std::endl;
+									{	//Add keywords to file
+										if(keywords[i] != "end")
+										keywords_file << keywords[i] << std::endl;
 									}
-									std::string test;
-									sf::Packet mytemp;
-									Buffer = new char[4096];
-									while(size > max_size)
+									keywords_file.close();
+
+									//std::string test;
+									//sf::Packet mytemp;
+									Buffer = new char[size];
+								/*	while(size > max_size)
 									{
 										if(client.receive(mytemp) == sf::Socket::Done)
 										{
@@ -367,45 +376,61 @@ loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >>
 											//is completely transfered
 											max_size += sizeof(Buffer);
 										}
+									}*/
+									
+
+									while(size > max_size)
+									{	
+										client.receive(Buffer, sizeof(Buffer), received);
+										if(received == 0){
+											std::cout << "received nothing, break" << std::endl;
+											break;
+										}
+										//Write binary data to file
+										outfile.write(Buffer, sizeof(Buffer));
+										max_size += received;
+
+										memset(Buffer, 0, sizeof(Buffer));
 									}
-									std::cout << "COMPLETED FIRST FILE" << std::endl;
+
+									
 									outfile.close();
-									
-									checker.clear();
-									checker << Ptype;
-									
-									client.send(checker);
-									
-									
 									max_size = 0;
-									outfile.open(filename2.c_str(), std::ofstream::binary);
 									
-									test.clear();
 									while(size2 > max_size)
 									{
-										if(client.receive(mytemp) == sf::Socket::Done)
-										{
-											mytemp >> test;
-											mytemp.clear();
-											//Recieve raw Data
-											//Output to designated file
-											outfile.write(test.c_str(), sizeof(test.c_str()));
-											//Keep track of file size so we know when file
-											//is completely transfered
-											max_size += sizeof(test.c_str());
+
+										client.receive(Buffer, sizeof(Buffer), received);
+										if(received == 0){
+											std::cout << "received nothing, break" << std::endl;
+											break;
 										}
+										
+										outfile2.write(Buffer, sizeof(Buffer));
+										max_size += sizeof(Buffer);
+										memset(Buffer, 0, sizeof(Buffer));
+									    std::cout <<size << " " << max_size << " "<< received <<std::endl;
+
 									}
-									outfile.write(test.c_str(), sizeof(test));
-									std::cout << "COMPLETED SECOND FILE" << std::endl;
-									outfile.close();
+									outfile2.close();
 									
-									checker.clear();
-									checker << Ptype;
+									//checker.clear();
+									//checker << Ptype;
 									
-									client.send(checker);
+									//client.send(checker);
+							
+									//test.clear();
+								
+									//checker.clear();
+									//checker << Ptype;
 									
+									//client.send(checker);
+									std::cout << paper1_name << std::endl;
+									std::cout << paper2_name << std::endl;
+									//Add filename and username of submittee to filenames.txt
 									filename_database << filename << " " << username << std::endl;
-									//std::cout << "BREAK OUT" << std::endl;
+									
+									delete [] Buffer;
 									break;
 								}
 								case 5:	//NOTIFIES
@@ -1013,3 +1038,8 @@ std::string get_Users(int& counter)
 	fin.close();
 	return users;
 }
+/*int receiveFile(){
+
+
+	return 0;
+}*/

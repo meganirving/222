@@ -19,6 +19,7 @@ void submitReview(sf::TcpSocket&, sf::Packet&);
 void getAllReviews(sf::TcpSocket&, sf::Packet&);
 void addComment(sf::TcpSocket&, sf::Packet&);
 void getDeadline(sf::TcpSocket&, const PacketType&);
+void checkDeadline(sf::TcpSocket&, const PacketType&);
 void setDeadline(sf::TcpSocket&, const PacketType&, sf::Packet&);
 void loadNotifs(sf::TcpSocket&, sf::Packet&);
 void saveNotifs(sf::TcpSocket&, sf::Packet&);
@@ -35,7 +36,7 @@ int main()
 	sf::TcpListener listener;
 
 		// bind the listener to a port
-	if (listener.listen(1338) != sf::Socket::Done)
+	if (listener.listen(1339) != sf::Socket::Done)
 	{
 	    // could not bind to port
 	}
@@ -303,23 +304,23 @@ int main()
 								case 4:	//SUBMIT PDF FILE
 								{
 										//std::cout << "REDCIEVED PACKET" << std::endl;
-									int size = 0, max_size = 0, max_size2 = 0;
-									int size2 = 0;
+									int size = 0, size2 = 0, max_size = 0;
 									std::string username;
 									std::string filename;
 									std::string filename2;
 									std::string keywords[5];
 									std::size_t received = 0;
-									std::size_t received2= 0;
 
 									char *Buffer = new char[4096];
-									char *Buffer2 = new char [4096];
-
-									loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> 
-									keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
+loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
 									
-									//std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
-									//std::cout << ID << " FILE SUBMISSION: " << filename2 << " has a file size of: " << size2 <<std::endl;
+									sf::Packet checker;
+									checker << Ptype;
+									
+									client.send(checker);
+									
+									std::cout << ID << " FILE SUBMISSION: " << filename << " has a file size of: " << size <<std::endl;
+									std::cout << ID << " FILE SUBMISSION: " << filename2 << " has a file size of: " << size2 <<std::endl;
 								
 									//We will have to create a directory on the pc we use for the presentation
 									// the commented out strings are specific to my home pc
@@ -341,9 +342,7 @@ int main()
 									std::string keyname = buffer + "_keywords.txt";	
 									std::ofstream outfile;
 									std::ofstream keyfile;
-									std::ofstream outfile2;
 									
-									outfile2.open(filename2.c_str(), std::ofstream::binary);
 									outfile.open(filename.c_str(), std::ofstream::binary);
 									keyfile.open(keyname.c_str(), std::ios::app);
 										
@@ -351,30 +350,59 @@ int main()
 									{
 										keyfile << keywords[i] << std::endl;
 									}
+									std::string test;
+									sf::Packet mytemp;
+									Buffer = new char[4096];
 									while(size > max_size)
 									{
-										//Recieve raw Data
-										client.receive(Buffer, sizeof(Buffer), received);
-										//Output to designated file
-										outfile.write(Buffer, sizeof(Buffer));
-										//Keep track of file size so we know when file
-										//is completely transfered
-										max_size += sizeof(Buffer);
+										if(client.receive(mytemp) == sf::Socket::Done)
+										{
+											mytemp >> test;
+											strcpy(Buffer, test.c_str());
+											mytemp.clear();
+											//Recieve raw Data
+											//Output to designated file
+											outfile.write(Buffer, sizeof(Buffer));
+											//Keep track of file size so we know when file
+											//is completely transfered
+											max_size += sizeof(Buffer);
+										}
 									}
+									std::cout << "COMPLETED FIRST FILE" << std::endl;
 									outfile.close();
 									
-									/*while(size2 > max_size2)
+									checker.clear();
+									checker << Ptype;
+									
+									client.send(checker);
+									
+									
+									max_size = 0;
+									outfile.open(filename2.c_str(), std::ofstream::binary);
+									
+									test.clear();
+									while(size2 > max_size)
 									{
-										//Recieve raw Data
-										client.receive(Buffer2, sizeof(Buffer2), received2);
-										//Output to designated file
-										outfile2.write(Buffer2, sizeof(Buffer2));
-										//Keep track of file size so we know when file
-										//is completely transfered
-										max_size2 += sizeof(Buffer2);
-										std::cout << max_size2 << " " << size2 << std::endl;
+										if(client.receive(mytemp) == sf::Socket::Done)
+										{
+											mytemp >> test;
+											mytemp.clear();
+											//Recieve raw Data
+											//Output to designated file
+											outfile.write(test.c_str(), sizeof(test.c_str()));
+											//Keep track of file size so we know when file
+											//is completely transfered
+											max_size += sizeof(test.c_str());
+										}
 									}
-									outfile2.close();*/
+									outfile.write(test.c_str(), sizeof(test));
+									std::cout << "COMPLETED SECOND FILE" << std::endl;
+									outfile.close();
+									
+									checker.clear();
+									checker << Ptype;
+									
+									client.send(checker);
 									
 									filename_database << filename << " " << username << std::endl;
 									//std::cout << "BREAK OUT" << std::endl;
@@ -445,7 +473,11 @@ int main()
 									ofile.close();
 									break;
 								}
-								
+								case 16: // CHECK_DEADLINE
+								{
+									std::cout << "CHECK DEADLINE" << std::endl;
+									checkDeadline(client, Ptype);
+								}
 							}	
 						}
 					}
@@ -582,6 +614,59 @@ void getDeadline(sf::TcpSocket& client, const PacketType& Ptype)
 	serverReply << Ptype << phase << deadLineDate;								
 	client.send(serverReply);
 }
+
+void checkDeadline(sf::TcpSocket& client, const PacketType& pType)
+{
+	bool updated = false;
+	std::ifstream fin;
+	int phase;
+	std::string deadLineDate;
+	fin.open("Settings.txt");
+	
+	if(fin.good())
+	{
+		fin >> phase;
+		fin >> deadLineDate;
+		fin.close();
+		if(deadLineDate != "00/00/0000")
+		{
+			Date tempDate;
+			tempDate.getCurrentDate();
+			Date testDate(deadLineDate);
+			if(tempDate >= testDate)
+			{
+				std::cout << tempDate << " >= " << testDate << std::endl;
+				phase++;
+				if(phase > 6)
+				{
+					phase = 0;
+				}
+				std::cout << "DEADLINE REACHED MOVING TO NEXT PHASE" << std::endl;
+				
+				tempDate += 7;
+				deadLineDate = tempDate.toString();
+				std::ofstream fout;
+				fout.open("Settings.txt");
+				fout << phase << " " << deadLineDate;
+				fout.close();
+				updated = true;
+			}
+		}
+	}
+	else
+	{
+		fin.close();
+		phase = -1;
+		deadLineDate = "00/00/0000";
+		std::ofstream fout;
+		fout.open("Settings.txt");
+		fout << phase << " " << deadLineDate;
+		fout.close();
+	}
+	sf::Packet serverReply;
+	serverReply << pType << phase << updated;						
+	client.send(serverReply);
+}	
 
 // load the phase from a text file
 void getPhase(sf::TcpSocket& client, const PacketType& Ptype)

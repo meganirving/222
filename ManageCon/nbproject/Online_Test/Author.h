@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <fstream>
+#include <vector>
 #include <SFML/Network.hpp>
 #include "sharedglobals.h"
 #include "User.h"

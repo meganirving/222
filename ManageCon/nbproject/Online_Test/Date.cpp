@@ -76,17 +76,17 @@ Date& Date::operator+=(const int& days)
 
 bool Date::operator>=(const Date& other)
 {
-	if(year >= other.year)
+	if(year > other.year)
 	{
 		return true;
 	}
-	else
+	else if(year == other.year)
 	{
-		if(month >= other.month)
+		if(month > other.month)
 		{
 			return true;
 		}
-		else
+		else if(month == other.month)
 		{
 			if(day >= other.day)
 			{

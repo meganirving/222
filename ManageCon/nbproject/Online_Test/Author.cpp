@@ -60,6 +60,7 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 {
 	PacketType PType = WORK_SUBMISSION; 
 	sf::Packet packet;
+	sf::Packet serverReply;
 	std::string filename;
 	std::string filename2;
 	std::string keywords[5];
@@ -92,31 +93,90 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 	//File back with filename, keywords and size of file to expect
 	packet << id << PType << filename << filename2 << username << keywords[0] << 
 			   keywords[1] << keywords[2] <<keywords[3] << keywords[4] << size << size2;
+	socket.send(packet);
+	if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+	{
+			//push data from server reply into variables
+		serverReply >> PType;
+		if(PType == 4)
+		{
+			std::cout << "Start sending files" << std::endl;
+		}
+		else
+		{
+			std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
+		}
+	}		
+	serverReply.clear();	   
+	
 	if(File.good())
 	{
 		std::cout << "File is good" << std::endl;
-
-		socket.send(packet);
 		//Make sure file pointer is at beginning
 		File.seekg(0, std::ios::beg);
 		File2.seekg(0, std::ios::beg);
 
 		char* Buffer = new char[4096];
-		char* Buffer2 = new char[4096];
-
+		std::string toSend = "";
+		
+		sf::Packet test;
 		while(File.read(Buffer, sizeof(Buffer)))
 		{
-			socket.send(Buffer, sizeof(Buffer));
+			toSend = Buffer;
+			test.clear();
+			test << toSend;
+			socket.send(test);
+			//socket.send(Buffer, sizeof(Buffer));
 		}
 		File.close();
-		/*while(File2.read(Buffer2, sizeof(Buffer2)))
+		
+		
+		
+		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
 		{
-			socket.send(Buffer2, sizeof(Buffer2));
-		}*/
+				//push data from server reply into variables
+			serverReply >> PType;
+			if(PType == 4)
+			{
+				std::cout << "First file submitted correctly" << std::endl;
+			}
+			else
+			{
+				std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
+			}
+		}
+		serverReply.clear();
+		Buffer = new char[4096];
+		toSend.clear();
+		
+		while(File.read(Buffer, sizeof(Buffer)))
+		{
+			toSend.append(Buffer);
+			test.clear();
+			test << toSend;
+			socket.send(test);
+			//socket.send(Buffer, sizeof(Buffer));
+		}
+		File2.close();
+	    test.clear();
+		test << toSend;
+		socket.send(test);
+		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+		{
+				//push data from server reply into variables
+			serverReply >> PType;
+			if(PType == 4)
+			{
+				std::cout << "Second file submitted correctly" << std::endl;
+			}
+			else
+			{
+				std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
+			}
+		}
 		
 		File2.close();
 		delete[] Buffer;
-		delete[] Buffer2;
 	}
 }
 

@@ -79,6 +79,7 @@ void Admin::paperMenu(sf::TcpSocket& socket)
 void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
+	testDeadline(socket, id);
 	
 	// header
 	std::cout << "_____________________________________" << std::endl;
@@ -121,6 +122,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 		ManagePapers(socket);
 	}
 }
+
 void Admin::ManagePapers(sf::TcpSocket& socket)
 {
 	papernames.push_back("test paper");

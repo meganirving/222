@@ -84,7 +84,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
 	testDeadline(socket, id);
-	system("clear");
+	
 	// header
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
@@ -135,10 +135,18 @@ void Admin::ManagePapers(sf::TcpSocket& socket)
 	std::string buffer;
 	filename_database.open("unaccepted_papers.txt");	
 	
+	
 	while(!filename_database.eof())
 	{
-	
+		
 		filename_database >> buffer;
+		if(buffer == ""){
+
+			system("clear");
+			std::cout << "\033[1;36mNo Papers to Manage\033[0m" << std::endl;
+			return;
+		}
+
 		getline(filename_database, username);
 		if(!filename_database.eof())
 		{
@@ -163,11 +171,11 @@ void Admin::AcceptPapers(std::string file, sf::TcpSocket& socket, std::string us
 
 	socket.send(packet);
 
-
-
 	file.erase(file.length()-5, 4);
+
+	system("clear");
 	std::string news = username + "'s paper " + file + " has been added to the conference!\n";
-	
+	news = "\033[1;36m" + news + "\033[0m";
 
 
 	addNews(news, socket, id);
@@ -271,7 +279,6 @@ void Admin::ManageUsers(sf::TcpSocket& socket)
 					designatedLevel = (mylevels.substr(0, pos));
 					mylevels = mylevels.substr(pos+1, mylevels.length()-pos);
 				}
-				
 				
 				PacketType Ptype = ACCEPT_USER;
 

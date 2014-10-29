@@ -221,6 +221,7 @@ int main()
 			}
 			else if(userlevel == "ADMIN")
 			{
+				
 				player = new Admin(ID, username, password, email);
 			}
 			// get the current phase

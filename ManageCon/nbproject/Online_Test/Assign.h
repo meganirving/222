@@ -18,6 +18,7 @@ struct keywords {
 };
 
 int getScore(std::string str1, std::string str2);
+int getBid(std::string Pname, std::string Rname);
 
 void AssignPaper(const std::string& paperFile, const std::string& reviewFile)
 {
@@ -57,7 +58,7 @@ void AssignPaper(const std::string& paperFile, const std::string& reviewFile)
 		//std::cout << "Name: " << tempKeys.name << std::endl;
 		while (tempStream >> keyword) 
 		{
-			std::cout << "j[" << j << "] = " << keyword << std::endl;
+			//std::cout << "j[" << j << "] = " << keyword << std::endl;
 			tempKeys.words[j] = keyword;
 			j++;
 		}
@@ -132,9 +133,11 @@ void AssignPaper(const std::string& paperFile, const std::string& reviewFile)
 				for (int l = 0; l < reviewers[j].numWords; l++) 
 				{
 					score += getScore(papers[i].words[k], reviewers[j].words[l]);
+					
 				}
 				scores[(i*numReviewers)+j] += score;
 			}
+			scores[(i*numReviewers)+j] += getBid(papers[i].name, reviewers[j].name);
 		}
 	}
 	// Test output
@@ -153,25 +156,17 @@ void AssignPaper(const std::string& paperFile, const std::string& reviewFile)
 		assigned[i] = -1; // -1 = not assigned, else number indicates reviewer assigned
 	}
 
-	int best = 0;
+	int best = -1;
 	int selectedReviewer = 0;
 	for (int i = 0; i < numPapers; i++)
 	{
-		best = 0;
+		best = -1;
 		selectedReviewer = 0;
 		for (int j = 0; j < numReviewers; j++) 
 		{
-			if(i == 0)
-			{
-				//std::cout << "REVIEWER = " << j  << " with " << scores[(i*numReviewers)+j] << std::endl;
-			}
 			if(scores[(i*numReviewers)+j] > best)
 			{
 				best = scores[(i*numReviewers)+j];
-				if(i == 0)
-				{
-					//std::cout << "NEW BEST = " << j  << " with " << best << std::endl;
-				}
 				selectedReviewer = j;
 			}
 		}
@@ -183,7 +178,6 @@ void AssignPaper(const std::string& paperFile, const std::string& reviewFile)
 	for (int i = 0; i < numPapers; i++) 
 	{
 		a = assigned[i];
-		//std::cout << "a: " << a << std::endl;
 		std::cout << papers[i].name << " assigned to " << reviewers[a].name << std::endl;
 	}
 	
@@ -211,6 +205,47 @@ int getScore(std::string str1, std::string str2)
 	}
 	
 	return 0;
+}
+
+int getBid(std::string Pname, std::string Rname) 
+{
+	int score = 0;
+	std::string tempP;
+	std::string tempR;
+	std::string tempS;
+	std::ifstream fin;
+	fin.open("Bids.txt");
+	
+	while(fin.good())
+	{
+		std::getline(fin, tempP, ',');
+		std::getline(fin, tempR, ',');
+		std::getline(fin, tempS, '\n');
+		if(tempP == Pname && tempR == Rname)
+		{
+			if(tempS == "1")
+			{
+				score = -99999;
+			}
+			else if(tempS == "2")
+			{
+				score = -2;
+			}
+			else if(tempS == "3")
+			{
+				score = 0;
+			}
+			else if(tempS == "4")
+			{
+				score = 1;
+			}
+			else
+			{
+				score = 2;
+			}
+		}
+	}
+	return score;
 }
 
 #endif

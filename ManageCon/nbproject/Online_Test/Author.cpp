@@ -53,7 +53,6 @@ void Author::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 			signedIn = false;
 		}
 	}
-	std::cout << "Exited while" << std::endl;
 }
 
 // submits a work
@@ -67,13 +66,13 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 	//char Buffer[4096] = {};
 	std::string filename;
 	std::string filename2;
-	std::string authors[3];
+	std::string authors[3] = {""};
 	std::string keywords[5] = {""};
 
 	std::cout << "Please enter filename of full document" << std::endl;
 	std::cin >> filename;
 
-	std::cout << "Please enter Author's of paper (max 3)" << std::endl;
+	std::cout << "Please enter Author's of paper (max 3, 'end' to stop)" << std::endl;
 
 	do
 	{
@@ -152,127 +151,4 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 		}
 
 }
-
-
-	/*PacketType PType = WORK_SUBMISSION; 
-	sf::Packet packet;
-	sf::Packet serverReply;
-	std::string filename;
-	std::string filename2;
-	std::string keywords[5];
-
-	std::cout << "Please enter filename of full document" << std::endl;
-	std::cin >> filename;
-	
-	std::cout << "Please enter anonymouse paper filename" << std::endl;
-	std::cin >> filename2;
-	
-	
-
-	std::cout << "Please enter 3 keywords for paper" << std::endl;
-
-	for(int i = 0; i < 3; i++){
-		std::cin >> keywords[i];
-	}
-	
-	std::ifstream File(filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-	std::ifstream File2(filename2.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-	
-	// Get file size to send to server
-	File.seekg(0, File.end);
-	File2.seekg(0, File2.end);
-	int size2 = File2.tellg();
-	int size = File.tellg();
-
-	std::cout << "File size is: " << size << std::endl;
-	std::cout << "File2 size is: " << size2 << std::endl;
-	//File back with filename, keywords and size of file to expect
-	packet << id << PType << filename << filename2 << username << keywords[0] << 
-			   keywords[1] << keywords[2] <<keywords[3] << keywords[4] << size << size2;
-	socket.send(packet);
-	if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
-	{
-			//push data from server reply into variables
-		serverReply >> PType;
-		if(PType == 4)
-		{
-			std::cout << "Start sending files" << std::endl;
-		}
-		else
-		{
-			std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
-		}
-	}		
-	serverReply.clear();	   
-	
-	if(File.good())
-	{
-		std::cout << "File is good" << std::endl;
-		//Make sure file pointer is at beginning
-		File.seekg(0, std::ios::beg);
-		File2.seekg(0, std::ios::beg);
-
-		char* Buffer = new char[4096];
-		std::string toSend = "";
-		
-		sf::Packet test;
-		while(File.read(Buffer, sizeof(Buffer)))
-		{
-			toSend = Buffer;
-			test.clear();
-			test << toSend;
-			socket.send(test);
-			//socket.send(Buffer, sizeof(Buffer));
-		}
-		File.close();
-		
-		
-		
-		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
-		{
-				//push data from server reply into variables
-			serverReply >> PType;
-			if(PType == 4)
-			{
-				std::cout << "First file submitted correctly" << std::endl;
-			}
-			else
-			{
-				std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
-			}
-		}
-		serverReply.clear();
-		Buffer = new char[4096];
-		toSend.clear();
-		
-		while(File.read(Buffer, sizeof(Buffer)))
-		{
-			toSend.append(Buffer);
-			test.clear();
-			test << toSend;
-			socket.send(test);
-			//socket.send(Buffer, sizeof(Buffer));
-		}
-		File2.close();
-	    test.clear();
-		test << toSend;
-		socket.send(test);
-		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
-		{
-				//push data from server reply into variables
-			serverReply >> PType;
-			if(PType == 4)
-			{
-				std::cout << "Second file submitted correctly" << std::endl;
-			}
-			else
-			{
-				std::cout << "EXPECTED: FILE_SUBMISSION RECIEVED: " << PType << std::endl;
-			}
-		}
-		
-		File2.close();
-		delete[] Buffer;
-	}
-}*/
 

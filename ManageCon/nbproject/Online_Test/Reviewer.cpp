@@ -47,6 +47,10 @@ void Reviewer::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket
 	{
 		displayNotifs(socket);
 	}
+	else if (input == "B" && currPhase == 1)
+	{
+		biddingMenu(socket);
+	}
 	else if (input == "R" && currPhase == 2)
 	{
 		reviewMenu(socket);
@@ -54,6 +58,121 @@ void Reviewer::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket
 	else if (input == "C" && currPhase == 3)
 	{
 		commentMenu(socket);
+	}
+}
+
+void Reviewer::biddingMenu(sf::TcpSocket& socket)
+{
+	std::string papernames;	
+	std::string tempnames;
+	int count;
+	std::string input;
+	int num;
+	int bid_input;
+	
+	while(input != "B")
+	{
+		PacketType Ptype = GET_PAPERS_LIST;
+		sf::Packet biddingPacket;
+		biddingPacket << id << Ptype;
+		socket.send(biddingPacket);
+		sf::Packet serverReply;
+			
+		if(socket.receive(serverReply) == sf::Socket::Done)	//check if reply was sent
+		{
+				//push data from server reply into variables
+			serverReply >> Ptype;
+			if(Ptype == 17)
+			{
+				serverReply >> papernames >> count;
+			}
+			else
+			{
+				std::cout << "EXPECTED: GET_PAPERS_LIST RECIEVED: " << Ptype << std::endl;
+			}
+		}
+	
+		std::cout << "There are currently " << count << " papers to be bid on: " << std::endl;
+	
+		
+		int pos = 0;
+		std::string tempName;
+		std::cout << "List of papers: " << std::endl;
+		std::cout << "------------------------------------------------" << std::endl;
+		tempnames = papernames;
+		for(int i = 0; i < count; i++)
+		{
+				//get user name
+			pos = tempnames.find_first_of(",");
+			tempName = (tempnames.substr(0, pos));
+			tempnames = tempnames.substr(pos+1, tempnames.length()-pos);
+			std::cout << "|- " << i+1 << ": " << tempName << std::endl;
+		}
+		std::cout << "------------------------------------------------" << std::endl;
+	
+		std::cout << "_____________________________________" << std::endl;
+		std::cout << "|          Bidding Menu             |" << std::endl;
+		std::cout << "|   '#' Select paper                |" << std::endl;
+		std::cout << "|   'B'ack                          |" << std::endl;
+		std::cout << "|___________________________________|" << std::endl;
+		std::cout << "\n--> ";
+		std::cin >> input;
+		if(input != "B")
+		{
+			num = atoi(input.c_str());
+			if(num > count || num < 1)
+			{
+				
+				std::cout << "Paper " << num << " doesn't exist." << std::endl;
+			}
+			for(int i = 0; i < count; i++)
+			{
+				if(num == i+1)
+				{
+						//get user name
+					tempnames = papernames;
+					pos = 0;
+					for(int j = 0; j < num; j++)
+					{
+						pos = tempnames.find_first_of(",");
+						tempName = (tempnames.substr(0, pos));
+						tempnames = tempnames.substr(pos+1, tempnames.length()-pos);
+					}
+					do
+					{
+						std::cout << std::endl;
+						std::cout << "\tBid prefence for " << tempName << ": " << std::endl;
+						std::cout << "\t 1. Conflict of interest" << std::endl;
+						std::cout << "\t 2. Prefer not to get" << std::endl;
+						std::cout << "\t 3. Unphased" << std::endl;
+						std::cout << "\t 4. Prefered" << std::endl;
+						std::cout << "\t 5. Highly prefered" << std::endl; 
+						std::cout << "\n--> ";
+						std::cin >> bid_input;
+					}
+					while(bid_input > 5 || bid_input < 1);
+					PacketType Ptype = ADD_TO_BIDS;
+					biddingPacket.clear();
+					biddingPacket << id << Ptype << tempName << username << bid_input;
+					socket.send(biddingPacket);
+					serverReply.clear();
+					
+					if(socket.receive(serverReply) == sf::Socket::Done)
+					{
+						serverReply >> Ptype;
+						if(Ptype == 18)
+						{
+							std::cout << "Bid placed" << std::endl;
+						}
+						else
+						{
+							std::cout << "EXPECTED: ADD_TO_BIDS RECIEVED: " << Ptype << std::endl;
+						}
+					}
+					i = count;
+				}
+			}
+		}
 	}
 }
 

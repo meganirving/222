@@ -17,6 +17,7 @@ class Reviewer : public User
 		void Display(bool&, std::string&, sf::TcpSocket&);
 		
 		// menu
+		void biddingMenu(sf::TcpSocket&);
 		void reviewMenu(sf::TcpSocket&);
 };
 

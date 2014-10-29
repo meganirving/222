@@ -13,6 +13,8 @@
 #include "Date.h"
 #include "Assign.h"
 
+void addBidding(sf::TcpSocket&, const PacketType&, sf::Packet&);
+void getPapers(sf::TcpSocket&, const PacketType&);
 void getPhase(sf::TcpSocket&, const PacketType&);
 void getAllNews(sf::TcpSocket&);
 void saveNews(sf::Packet&);
@@ -44,7 +46,7 @@ int main()
 	else
 	{
 		std::cout << "----SERVER STARTED----" << std::endl;
-		std::string papertest = "papers.txt";
+		std::string papertest = "unaccepted_papers.txt";
 		std::string reviewstest = "Reviewers.txt";
 		AssignPaper(papertest,reviewstest);
 	}
@@ -376,7 +378,6 @@ int main()
 
 									username_file.open(username.c_str(), std::ios::app);
 									filename_database.open("filenames.txt", std::ios::app);	
-									unaccepted.open("unaccepted_papers.txt", std::ios::app);
 									
 									//Add filename to user file submissions text
 									username_file << filename << std::endl;
@@ -384,47 +385,18 @@ int main()
 
 									std::string buffer = filename;//remove .pdf from filename
 									buffer.erase(buffer.end()-4, buffer.end());
-									
-									//Create keywords filename
-									std::string keyname = buffer + "_keywords.txt";	
-
+								
+								
 									std::ofstream outfile;
 									std::ofstream outfile2;
-									std::ofstream keywords_file;
 									//Open new pdf files
 									std::string paper1_name = "\\test\\"+filename;
 									std::string paper2_name = "\\test\\"+filename2;
 
 									outfile.open(paper1_name.c_str(), std::ofstream::binary);
 									outfile2.open(paper2_name.c_str(), std::ofstream::binary);
-									keywords_file.open(keyname.c_str(), std::ios::app);
-										
-									for(int i = 0; i < 5; i++)
-									{	//Add keywords to file
-										if(keywords[i] != "end")
-										keywords_file << keywords[i] << std::endl;
-									}
-									keywords_file.close();
 
-									//std::string test;
-									//sf::Packet mytemp;
 									Buffer = new char[size];
-								/*	while(size > max_size)
-									{
-										if(client.receive(mytemp) == sf::Socket::Done)
-										{
-											mytemp >> test;
-											strcpy(Buffer, test.c_str());
-											mytemp.clear();
-											//Recieve raw Data
-											//Output to designated file
-											outfile.write(Buffer, sizeof(Buffer));
-											//Keep track of file size so we know when file
-											//is completely transfered
-											max_size += sizeof(Buffer);
-										}
-									}*/
-									
 
 									while(size > max_size)
 									{	
@@ -456,27 +428,48 @@ int main()
 										outfile2.write(Buffer, sizeof(Buffer));
 										max_size += sizeof(Buffer);
 										memset(Buffer, 0, sizeof(Buffer));
-									    std::cout <<size << " " << max_size << " "<< received <<std::endl;
 
 									}
 									outfile2.close();
 									
-									//checker.clear();
-									//checker << Ptype;
-									
-									//client.send(checker);
-							
-									//test.clear();
-								
-									//checker.clear();
-									//checker << Ptype;
-									
-									//client.send(checker);
 									std::cout << paper1_name << std::endl;
 									std::cout << paper2_name << std::endl;
 									//Add filename and username of submittee to filenames.txt
 									filename_database << filename << " " << username << std::endl;
-									unaccepted << filename << " " << username << std::endl;
+									std::ifstream Pin;
+									Pin.open("unaccepted_papers.txt", std::ios::in);
+									if(Pin.good())
+									{
+										Pin.close();
+										std::ofstream pout;
+										pout.open("unaccepted_papers.txt", std::ios::app);
+										pout << filename;
+										for(int i = 0; i < 5; i++)
+										{
+											if(keywords[i] != "")
+											{
+												pout << " " << keywords[i];
+											}
+										}
+										pout << std::endl;
+										pout.close();
+									}
+									else
+									{
+										Pin.close();
+										std::ofstream pout;
+										pout.open("unaccepted_papers.txt");
+										pout <<  filename;
+										for(int i = 0; i < 5; i++)
+										{
+											if(keywords[i] != "")
+											{
+												pout << " " << keywords[i];
+											}
+										}
+										pout << std::endl;
+										pout.close();
+									}
 									
 									delete [] Buffer;
 									break;
@@ -586,6 +579,16 @@ int main()
 									std::cout << "CHECK DEADLINE" << std::endl;
 									checkDeadline(client, Ptype);
 								}
+								case 17: // Get Paper Names
+								{
+									std::cout << "GET PAPERS REQUEST (BIDDING)" << std::endl;
+									getPapers(client, Ptype);
+								}
+								case 18: // ADD TO BIDDING LIST
+								{
+									std::cout << "ADD TO BIDDING REQUEST" << std::endl;
+									addBidding(client, Ptype, loginPacket);
+								}
 							}	
 						}
 					}
@@ -596,7 +599,68 @@ int main()
     return 0;
 }
 
-using namespace std;
+void addBidding(sf::TcpSocket& client, const PacketType& pType, sf::Packet& bidPacket)
+{
+	std::string username;
+	std::string papername;
+	int prefLvl;
+	bidPacket >> papername >> username >> prefLvl;
+	
+	std::ifstream fin;
+	fin.open("Bids.txt");
+	std::ofstream fout;
+	if(fin.good())
+	{
+		fin.close();
+		fout.open("Bids.txt", std::ios::app);
+		fout << papername << "," << username << "," << prefLvl <<std::endl;
+	}
+	else
+	{
+		fin.close();
+		fout.open("Bids.txt");
+		fout << papername << "," << username << "," << prefLvl << std::endl;
+	}
+	fout.close();
+	
+	sf::Packet replyPacket;
+	replyPacket << pType;
+	client.send(replyPacket);
+}
+
+void getPapers(sf::TcpSocket& client, const PacketType& pType)
+{
+	std::ifstream fin;
+	std::string tempname;
+	std::string papernames = "";
+	fin.open("Papers.txt");
+	int counter = 0;
+	
+	if(fin.good())
+	{
+		while(fin.good())
+		{
+			std::getline(fin, tempname, ' ');
+			if(!fin.eof())
+			{
+				counter++;
+				papernames.append(tempname);
+				papernames += ',';
+				std::getline(fin, tempname);
+			}
+		}
+	}
+	else
+	{
+		fin.close();
+		std::ofstream fout;
+		fout.open("Papers.txt");
+		fout.close();
+	}
+	sf::Packet replyPacket;
+	replyPacket << pType << papernames << counter;
+	client.send(replyPacket);
+}
 
 // server:
 void getAllNews(sf::TcpSocket& client)
@@ -1007,13 +1071,14 @@ char* ItoA(int num)
 	return converted;
 }
 
+
 	//Finds what level of access the user should have
-string check_User(const string& username, const string& password, const string& email)
+std::string check_User(const std::string& username, const std::string& password, const std::string& email)
 {
 		//check admin
 	std::string returnvalue = "NON-EXISTING";
 	std::string fname = "PC_Chair.txt";
-	returnvalue = check_File(fname, username, password, email);
+	returnvalue = (std::string)check_File(fname, username, password, email);
 		//check Reviewers
 	if(returnvalue == "NON-EXISTING")
 	{
@@ -1035,16 +1100,17 @@ string check_User(const string& username, const string& password, const string& 
 	return returnvalue;
 }
 
+
 std::string check_File(const std::string& fname, const std::string& username, const std::string& password, const std::string& email)
 {
 	char tempUser[17];		//max username length = 16 + \0
 	char tempPass[21];		//max password length = 20 + \0
 	char tempEmail[1024];
-	ifstream fin(fname.c_str());
+	std::ifstream fin(fname.c_str());
 	if(!fin.good())	//make sure file exists, otherwise create one
 	{
 		fin.close();
-		ofstream fout(fname.c_str(), ios::out);
+		std::ofstream fout(fname.c_str(), std::ios::out);
 		fout.close();
 	}
 	else			//search through
@@ -1093,16 +1159,16 @@ std::string check_File(const std::string& fname, const std::string& username, co
 
 std::string get_Users(int& counter)
 {
-	ifstream fin;
+	std::ifstream fin;
 	char tempLine[1024];
 	char end_of_user = '~';
 	std::string users = "";
 		//check Authors
-	fin.open("Users.txt", ios::in);
+	fin.open("Users.txt", std::ios::in);
 	if(!fin.good())	//make sure file exists, otherwise create one
 	{
 		fin.close();
-		ofstream fout("Users.txt", ios::out);
+		std::ofstream fout("Users.txt", std::ios::out);
 		fout.close();
 	}
 	else			//search through

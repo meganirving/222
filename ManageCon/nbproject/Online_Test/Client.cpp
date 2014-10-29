@@ -32,6 +32,8 @@ int main()
 	std::string email;						// email address for an account
 	std::string input;						// input command 
 											// (server needs to know aswell)
+	int numOfKeywords;
+	std::string keywords[5];
 	std::string userlevel = "-1";			// works out type of user e.g. Author, Admin
 
 		//Connect to server using TCP type connection
@@ -124,6 +126,17 @@ int main()
 					else if(userType == "R")
 					{
 						userType = "REVIEWER";
+						do
+						{
+							std::cout << "How many keywords will you have(max 5): ";
+							std::cin >> numOfKeywords;
+						}
+						while(numOfKeywords < 1 || numOfKeywords > 5);
+						for(int i = 0; i < numOfKeywords; i++)
+						{
+							std::cout << "Keyword " << i+1 << ": ";
+							std::cin >> keywords[i];
+						}
 					}
 				}
 				while(userType != "AUTHOR" && userType != "REVIEWER");
@@ -140,7 +153,14 @@ int main()
 				sf::Packet loginPacket;
 				
 					//Send data to packet
-				loginPacket << ID << Ptype << username << password << userType << email;
+				if(userType == "AUTHOR")
+				{
+					loginPacket << ID << Ptype << username << password << userType << email;
+				}
+				else
+				{
+					loginPacket << ID << Ptype << username << password << userType << email << numOfKeywords << keywords[0] << keywords[1] << keywords[2] << keywords[3] << keywords[4];
+				}	
 				
 					//Send packet to server
 				socket.send(loginPacket);

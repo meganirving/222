@@ -11,6 +11,7 @@
 #include <vector>
 #include "sharedglobals.h"
 #include "Date.h"
+#include "Assign.h"
 
 void getPhase(sf::TcpSocket&, const PacketType&);
 void getAllNews(sf::TcpSocket&);
@@ -40,7 +41,13 @@ int main()
 	{
 	    // could not bind to port
 	}
-	
+	else
+	{
+		std::cout << "----SERVER STARTED----" << std::endl;
+		std::string papertest = "papers.txt";
+		std::string reviewstest = "Reviewers.txt";
+		AssignPaper(papertest,reviewstest);
+	}
 		// list of connected clients
 	std::list<sf::TcpSocket*> clients;	
 	
@@ -59,6 +66,8 @@ int main()
 	std::string email = "x";				// email address for an account
 	std::string input;						// input command (server needs 
 											// to know aswell)
+	int numOfKeywords;
+	std::string keywords[5];
 	std::string userlevel = "-1";			// works out type of user 
 											// e.g. Author, Admin
 	
@@ -163,7 +172,16 @@ int main()
 								case 1:
 								{
 									loginPacket >> username >> password >> userType >> email;
-									std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << userType << " " << email << std::endl; 
+									if(userType == "REVIEWER")
+									{
+										loginPacket >> numOfKeywords >> keywords[0] >> keywords[1] >> keywords[2] >> keywords[3] >> keywords[4];
+										std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << userType << " " << email << " " << keywords[0] << " " << keywords[1] << " " << keywords[2] << " " << keywords[3] << " " << keywords[4] << std::endl; 
+									}
+									else
+									{
+										std::cout << ID <<  " SIGN-UP REQUEST: " << username << " " << password << " " << userType << " " << email << std::endl; 
+									}
+									
 						//make sure designated username doesn't already exist
 									userlevel = check_User(username, password, email);
 									if(userlevel == "NON-EXISTING")
@@ -175,13 +193,31 @@ int main()
 										{
 											fin.close();
 											fout.open("Users.txt");
-											fout << username << "," << password << "," << userType << "," << email << std::endl;
+											fout << username << "," << password << "," << userType << "," << email;
+											if(userType == "REVIEWER")
+											{
+												fout << "," << numOfKeywords;
+												for(int i = 0; i < numOfKeywords; i++)
+												{
+													fout << "," << keywords[i];
+												}
+											}
+											fout << std::endl;
 										}
 										else
 										{	
 											fin.close();
 											fout.open("Users.txt", std::ios::app);
-											fout << username << "," << password << "," << userType << "," << email << std::endl;
+											fout << username << "," << password << "," << userType << "," << email;
+											if(userType == "REVIEWER")
+											{
+												fout << "," << numOfKeywords;
+												for(int i = 0; i < numOfKeywords; i++)
+												{
+													fout << "," << keywords[i];
+												}
+											}
+											fout << std::endl;
 										}
 										fout.close();
 									}
@@ -209,7 +245,7 @@ int main()
 									std::string tempUser;
 									std::string userToDel;
 									std::string tempLevel;
-									char tempLine[256];
+									char tempLine[1024];
 									std::string tempToAdd;
 									std::vector<std::string> tempFileData;
 									int pos;
@@ -234,7 +270,7 @@ int main()
 											fin.getline(tempLine, 256, ',');
 											tempLevel = tempLine;
 											userToAccept += ',';
-											fin.getline(tempLine, 256, '\n');
+											fin.getline(tempLine, 1024, '\n');
 											tempToAdd = tempLine;
 											userToAccept.append(tempToAdd);
 											if(tempLevel == "AUTHOR")
@@ -259,7 +295,7 @@ int main()
 										}
 										else
 										{
-											fin.getline(tempLine, 256, '\n');
+											fin.getline(tempLine, 1024, '\n');
 										}
 									}
 									fin.close();
@@ -267,7 +303,7 @@ int main()
 									fin.open("Users.txt");
 									while(fin.good())
 									{
-										fin.getline(tempLine, 256, '\n');
+										fin.getline(tempLine, 1024, '\n');
 										tempUser = tempLine;
 										tempFileData.push_back(tempUser);
 									}
@@ -1003,7 +1039,7 @@ std::string check_File(const std::string& fname, const std::string& username, co
 {
 	char tempUser[17];		//max username length = 16 + \0
 	char tempPass[21];		//max password length = 20 + \0
-	char tempEmail[254];
+	char tempEmail[1024];
 	ifstream fin(fname.c_str());
 	if(!fin.good())	//make sure file exists, otherwise create one
 	{
@@ -1017,7 +1053,7 @@ std::string check_File(const std::string& fname, const std::string& username, co
 		{
 			fin.getline(tempUser, 256, ',');
 			fin.getline(tempPass, 256, ',');
-			fin.getline(tempEmail, 256, '\n');
+			fin.getline(tempEmail, 1024, '\n');
 			
 			if(!strcmp(tempUser, username.c_str()))
 			{
@@ -1073,7 +1109,7 @@ std::string get_Users(int& counter)
 	{
 		while(fin.good())
 		{
-			fin.getline(tempLine, 256, '\n');
+			fin.getline(tempLine, 1024, '\n');
 			if(fin.good())
 			{
 				users.append(tempLine);

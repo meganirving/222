@@ -17,8 +17,10 @@ const PacketType GET_REVIEWS=11;
 const PacketType GET_NEWS=12;
 const PacketType SET_NEWS=13;
 const PacketType GET_PHASE=14;
-const PacketType OVERIDE_FILENAMES = 15;
-const PacketType CHECK_DEADLINE = 16;
+const PacketType OVERIDE_FILENAMES=15;
+const PacketType CHECK_DEADLINE=16;
+const PacketType GET_PAPERS_LIST=17;
+const PacketType ADD_TO_BIDS=18;
 
 
 const static void testDeadline(sf::TcpSocket& socket, std::string ID)

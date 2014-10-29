@@ -19,6 +19,9 @@ bool in_Window(const sf::Mouse&, const sf::Window&, const sf::Vector2<int>&);
 
 int main()
 {		
+	int portnum;
+	std::cout << "Enter Port: ";
+	std::cin >> portnum;
 	//Setting random for connection ID
 	//(not best method because possible to be the same)
 	srand(time(NULL));
@@ -38,7 +41,7 @@ int main()
 
 		//Connect to server using TCP type connection
 	sf::TcpSocket socket;
-	sf::Socket::Status status = socket.connect("localhost", 1336);
+	sf::Socket::Status status = socket.connect("localhost", portnum);
 	if (status != sf::Socket::Done)
 	{
 		 std::cout << "Could not connect to server" << std::endl;

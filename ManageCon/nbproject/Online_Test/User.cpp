@@ -197,6 +197,8 @@ int User::unreadNotifs()
 	// reset unread count
 	int unread = 0;
 	
+	if(notifs.size() > 0)
+	{
 	// loop through all notificatons
 	std::vector<Notification>::iterator itr = notifs.begin();
 	while (itr != notifs.end())
@@ -207,6 +209,7 @@ int User::unreadNotifs()
 			unread++;
 		}
 		itr++;
+	}
 	}
 	
 	// return the count

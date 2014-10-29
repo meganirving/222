@@ -305,6 +305,7 @@ int main()
 								{
 									int size = 0, size2 = 0, max_size = 0;
 									std::string username, filename, filename2;
+									std::string authors[3];
 									std::string keywords[5];
 									std::size_t received = 0;
 									char* Buffer;
@@ -312,6 +313,12 @@ int main()
 									//GetData from packet
 									loginPacket >> filename >> filename2 >>username >> keywords[0] >> keywords[1] >> 
 									keywords[2] >> keywords[3] >> keywords[4] >> size >> size2;
+
+									for(int i = 0; i < 3;i++){
+
+										loginPacket >> authors[i];
+
+									}
 						
 									//sf::Packet checker;
 									//checker << Ptype;
@@ -326,12 +333,16 @@ int main()
 									
 									std::ofstream username_file;//Keeps track of all files a user has submitted by username
 									std::ofstream filename_database; //Records all filenames in the file structure
+									std::ofstream unaccepted;
 
 									std::string user_file = username + "_submissions.txt";
 									//Open both files
+
 									username_file.open(username.c_str(), std::ios::app);
 									filename_database.open("filenames.txt", std::ios::app);	
-									//Add filename to filenames.txt
+									unaccepted.open("unaccepted_papers.txt", std::ios::app);
+									
+									//Add filename to user file submissions text
 									username_file << filename << std::endl;
 									username_file.close();
 
@@ -429,6 +440,7 @@ int main()
 									std::cout << paper2_name << std::endl;
 									//Add filename and username of submittee to filenames.txt
 									filename_database << filename << " " << username << std::endl;
+									unaccepted << filename << " " << username << std::endl;
 									
 									delete [] Buffer;
 									break;
@@ -486,16 +498,51 @@ int main()
 									getPhase(client, Ptype);
 									break;
 								}
-								case 15: //Recieve new filenames.txt
+								case 15: //Remove filename from unaccepted_papers
 								{
-									std::string buffer;
+									int action;
+									std::string filename, username;
+									std::string file_buffer, user_buffer;
+									loginPacket >> filename >> username >> action;
+
+
+									std::ifstream unaccepted("unaccepted_papers.txt");
+									std::ofstream temp("temp.txt");
+
+									while(unaccepted >> file_buffer >> user_buffer)
+									{
+
+										std::cout << file_buffer << " : " << user_buffer << std::endl;
+
+										if(filename != file_buffer)
+										{
+
+											temp << file_buffer << " " << user_buffer << std::endl;
+
+										}
+
+									}
+
+									unaccepted.clear();
+									unaccepted.seekg(0, std::ios::beg);
+									unaccepted.close();
+									temp.close();
+
+									remove("unaccepted_papers.txt");
+									rename("temp.txt", "unaccepted_papers.txt");
+									if(action == 0){
+
+										
+
+										std::string paper1_name = "\\test\\"+filename;
+										std::cout << "In action 0 : " << paper1_name << std::endl;
+										remove(paper1_name.c_str());
+
+									}
+
+
+
 									
-									loginPacket << buffer;
-									
-									std::ofstream ofile;
-									ofile.open("filenames.txt", std::ios::out);
-									ofile << buffer;
-									ofile.close();
 									break;
 								}
 								case 16: // CHECK_DEADLINE

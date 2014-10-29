@@ -19,7 +19,11 @@ void Admin::paperMenu(sf::TcpSocket& socket)
 	while (input != 'B')
 	{
 		// display paper name and options
-		std::cout << "\n|\t\t" << *itr << "\t|" << std::endl;
+		system("clear");
+
+		std::cout << "\n_________________________________" << std::endl;
+		std::cout << "|\t"<<"\033[1;36mPaper Title: \033[0m"<< *itr << "\t|" << std::endl;
+		std::cout << "|                               |" << std::endl;
 		std::cout << "|\tAverage Score: " << avScoreOfPaper(socket, id, *itr) << "\t|" << std::endl;
 		
 		std::cout << "|\t'V'iew Reviews\t\t|" << std::endl;
@@ -32,7 +36,7 @@ void Admin::paperMenu(sf::TcpSocket& socket)
 		std::cout << "|\t'P'rev Paper\t\t|" << std::endl;
 		std::cout << "|\t'N'ext Paper\t\t|" << std::endl;
 		std::cout << "|\t'B'ack\t\t\t|" << std::endl;
-		
+		std::cout << "_________________________________" << std::endl;
 		// get input and deal with it
 		std::cin >> input;
 		switch(input)
@@ -80,7 +84,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 {
 	loadNotifs(socket);
 	testDeadline(socket, id);
-	
+	system("clear");
 	// header
 	std::cout << "_____________________________________" << std::endl;
 	std::cout << "|            Logged In              |" << std::endl;
@@ -125,13 +129,11 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 
 void Admin::ManagePapers(sf::TcpSocket& socket)
 {
-	papernames.push_back("test paper");
-	papernames.push_back("other test");
 
 	std::ifstream filename_database;
 	std::string username;
 	std::string buffer;
-	filename_database.open("filenames.txt");	
+	filename_database.open("unaccepted_papers.txt");	
 	
 	while(!filename_database.eof())
 	{
@@ -150,15 +152,43 @@ void Admin::ManagePapers(sf::TcpSocket& socket)
 }
 void Admin::AcceptPapers(std::string file, sf::TcpSocket& socket, std::string username)
 {
+	std::cout << "In accept papers function " << std::endl;
+	int action = 1;
+	std::string ID = "02030404";
+	PacketType pType = OVERIDE_FILENAMES;
+
+	sf::Packet packet;
+
+	packet << id << pType << file << username << action;
+
+	socket.send(packet);
+
+
+
 	file.erase(file.length()-5, 4);
 	std::string news = username + "'s paper " + file + " has been added to the conference!\n";
 	
+
+
 	addNews(news, socket, id);
 				
 }
 void Admin::RejectPapers(std::string file, sf::TcpSocket& socket, std::string username)
 {
+	
+	std::cout << "In Reject papers function " << std::endl;
+	int action = 0;
 	std::string ID = "02030403";
+	PacketType pType = OVERIDE_FILENAMES;
+
+	sf::Packet packet;
+
+	packet << id << pType << file << username << action;
+
+	socket.send(packet);
+
+
+	/*std::string ID = "02030403";
 	PacketType pType = OVERIDE_FILENAMES;
 	std::vector<std::string>::iterator itr = papernames.begin();
 	std::vector<std::string>::iterator name_itr = usernames.begin();
@@ -197,7 +227,7 @@ void Admin::RejectPapers(std::string file, sf::TcpSocket& socket, std::string us
 	packet << ID << pType << buffer;
 	
 	socket.send(packet);	
-
+*/
 }
 
 void Admin::ManageUsers(sf::TcpSocket& socket)

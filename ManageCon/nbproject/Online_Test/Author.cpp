@@ -67,11 +67,24 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 	//char Buffer[4096] = {};
 	std::string filename;
 	std::string filename2;
+	std::string authors[3];
 	std::string keywords[5] = {""};
 
 	std::cout << "Please enter filename of full document" << std::endl;
 	std::cin >> filename;
+
+	std::cout << "Please enter Author's of paper (max 3)" << std::endl;
+
+	do
+	{
+		input_num++;
+		std::getline(std::cin, authors[input_num]); 
 	
+		
+	}while(input_num < 3 && authors[input_num] != "end");
+	
+	input_num = -1;
+
 	std::cout << "Please enter paper for review filename" << std::endl;
 	std::cin >> filename2;
 	
@@ -93,6 +106,11 @@ void Author::SubmitWork(sf::TcpSocket& socket)
 	//File back with filename, keywords and size of file to expect
 	packet << id << PType << filename << filename2 << username << keywords[0] << 
 	       keywords[1] << keywords[2] <<keywords[3] << keywords[4] << size << size2;
+
+	for(int i = 0; i < 3; i++){
+
+		packet << authors[i];
+	}
 	
 	if(File.good() && File2.good())
 	{

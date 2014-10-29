@@ -26,6 +26,9 @@ class Admin : public User
 		void ManagePapers(sf::TcpSocket&);
 		void AcceptPapers(std::string, sf::TcpSocket&, std::string);
 		void RejectPapers(std::string, sf::TcpSocket&, std::string);
+		void ManageNews(sf::TcpSocket&);
+		void AddNews(sf::TcpSocket&);
+		void ClearNews(sf::TcpSocket&);
 };
 
 #endif

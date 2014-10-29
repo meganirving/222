@@ -37,14 +37,18 @@ std::string stringFromNews(Newsfeed feed)
 
 void displayNews(Newsfeed feed)
 {
-	std::cout << "|\tNewsfeed:" << std::endl;
+
+	system("clear");
+	std::cout << "\t\t\033[4;36mNewsfeed:\033[0m" << std::endl;
 	std::string news;
 	while (!feed.empty())
 	{
 		news = feed.front();
 		feed.pop();
-		std::cout << "|\t" << news << std::endl;
+		std::cout << news;
 	}
+
+	std::cout << std::endl;
 }
 
 Newsfeed getNews(sf::TcpSocket& socket, std::string ID)

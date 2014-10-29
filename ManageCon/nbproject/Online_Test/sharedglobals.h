@@ -21,7 +21,7 @@ const PacketType OVERIDE_FILENAMES=15;
 const PacketType CHECK_DEADLINE=16;
 const PacketType GET_PAPERS_LIST=17;
 const PacketType ADD_TO_BIDS=18;
-
+const PacketType CLEAR_NEWS=19;
 
 const static void testDeadline(sf::TcpSocket& socket, std::string ID)
 {

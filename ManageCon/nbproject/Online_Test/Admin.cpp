@@ -8,7 +8,110 @@ Admin::Admin(const std::string& ID, const std::string& name, const std::string& 
 	password = pass;
 	email = myemail;
 }
+void Admin::ManageNews(sf::TcpSocket& socket)
+{
+	char input = 'x';
+	system("clear");
+	while (input != 'B')
+	{
+	
+	std::cout << "_________________________________" << std::endl;
+	std::cout << "|                               |" << std::endl;
+	std::cout << "|     'A'dd News.               |" << std::endl;
+	std::cout << "|     'C'lear News.             |" << std::endl;
+	std::cout << "|     'B'back.                  |" << std::endl;
+	std::cout << "|_______________________________|" << std::endl;
+	std::cout << "\n--> ";
+	std::cin >> input;
 
+	switch(input)
+		{
+			case 'A': // Add news
+			{
+				
+				AddNews(socket);
+				system("clear");
+				std::cout << "\033[1;36mAdded new to feed\033[0m" << std::endl;
+				
+				break;
+			}
+			case 'C': // Clear newsfeed
+			{	
+				ClearNews(socket);
+				system("clear");
+				std::cout << "\033[1;36mNewfeed cleared\033[0m" << std::endl;
+				
+				break;
+			}
+			case 'B':
+			{
+				break;
+			}
+			default:
+				std::cout << "Invalid input." << std::endl;
+		
+		}
+
+
+	}
+
+}
+void Admin::AddNews(sf::TcpSocket& socket)
+{	//This function adds a string to the newsfeed
+	std::string news;
+	std::string buffer;
+	std::cout << "Enter news to add to feed" << std::endl;
+	std::cin.ignore();
+	getline(std::cin, buffer);
+
+	news = "\033[1;34m" + buffer + "\033[0m";
+	addNews(news, socket, id);	
+
+}
+void Admin::ClearNews(sf::TcpSocket& socket)
+{
+	//This function clears the newsfeed
+	int phase = -1;
+	sf::Packet packet;
+	PacketType pType = CLEAR_NEWS;
+
+	packet << id << pType;
+
+	socket.send(packet); 
+	packet.clear();
+	socket.receive(packet);
+	packet >> phase;
+
+	std::string currentPhase;
+		switch(phase)
+		{
+			case 0:
+				currentPhase = "Submission";
+				break;
+			case 1:
+				currentPhase = "Bidding";
+				break;
+			case 2:
+				currentPhase = "Reviewing";
+				break;
+			case 3:
+				currentPhase = "Comments";
+				break;
+			case 4:
+				currentPhase = "Rebuttal";
+				break;
+			case 5:
+				currentPhase = "Accepting";
+				break;
+			case 6:
+				currentPhase = "Conference";
+				break;
+		}
+
+	std::string news = "\033[1;36mCurrent Phase: " + currentPhase + "\033[0m";
+	addNews(news, socket, id);
+
+}
 void Admin::paperMenu(sf::TcpSocket& socket) 
 {
 	std::vector<std::string>::iterator itr = papernames.begin();
@@ -95,7 +198,7 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	{
 		std::cout << "|   'A'ccept Papers                 |" << std::endl;
 	}
-	
+	std::cout << "|   'E'dit Newsfeed                 |" << std::endl;
 	// footer
 	std::cout << "|   'S'et Deadlines                 |" << std::endl;
 	notifMenu();
@@ -124,6 +227,10 @@ void Admin::Display(bool& signedIn, std::string& input, sf::TcpSocket& socket)
 	else if(input =="A")
 	{
 		ManagePapers(socket);
+	}
+	else if(input =="E")
+	{
+		ManageNews(socket);
 	}
 }
 
@@ -171,10 +278,10 @@ void Admin::AcceptPapers(std::string file, sf::TcpSocket& socket, std::string us
 
 	socket.send(packet);
 
-	file.erase(file.length()-5, 4);
+	file.erase(file.length()-4, 4);
 
 	system("clear");
-	std::string news = username + "'s paper " + file + " has been added to the conference!\n";
+	std::string news = file + " has been added to the conference!\n";
 	news = "\033[1;36m" + news + "\033[0m";
 
 

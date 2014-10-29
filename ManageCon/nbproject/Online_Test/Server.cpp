@@ -32,6 +32,7 @@ void checkDeadline(sf::TcpSocket&, const PacketType&);
 void setDeadline(sf::TcpSocket&, const PacketType&, sf::Packet&);
 void loadNotifs(sf::TcpSocket&, sf::Packet&);
 void saveNotifs(sf::TcpSocket&, sf::Packet&);
+std::string switchPhase(int );
 std::string check_User(const std::string&, const std::string&, const std::string&);
 std::string check_File(const std::string&, const std::string&, const std::string&, const std::string&);
 std::string get_Users(int&);
@@ -268,6 +269,25 @@ int main()
 									std::cout << "ADD TO BIDDING REQUEST" << std::endl;
 									addBidding(client, Ptype, loginPacket);
 								}
+								case 19:// Clear newfeed.txt
+								{
+
+									sf::Packet reply;
+									int phase = -1;
+									std::ofstream ofile;
+									ofile.open("newsfeed.txt", std::ofstream::out | std::ofstream::trunc);
+									ofile.close();
+
+									// Get current phase to add to newsfeed
+									std::ifstream infile;
+									infile.open("Settings.txt");
+									infile >> phase;
+									infile.close();
+									std::cout << "Sending Reply" << std::endl;
+									reply << phase;
+									client.send(reply);
+
+								}
 							}	
 						}
 					}
@@ -277,7 +297,35 @@ int main()
 	}
     return 0;
 }
-
+std::string switchPhase(int x)
+{
+	std::string currentPhase;
+		switch(x)
+		{
+			case 0:
+				currentPhase = "Submission";
+				break;
+			case 1:
+				currentPhase = "Bidding";
+				break;
+			case 2:
+				currentPhase = "Reviewing";
+				break;
+			case 3:
+				currentPhase = "Comments";
+				break;
+			case 4:
+				currentPhase = "Rebuttal";
+				break;
+			case 5:
+				currentPhase = "Accepting";
+				break;
+			case 6:
+				currentPhase = "Conference";
+				break;
+		}
+	return currentPhase;
+}
 void loginRequest(sf::TcpSocket& client, const PacketType& Ptype, sf::Packet& loginPacket)
 {
 	std::string userlevel;
@@ -700,6 +748,8 @@ void getPapers(sf::TcpSocket& client, const PacketType& pType)
 void getAllNews(sf::TcpSocket& client)
 {
 	// open file
+	int phase = -1;
+	std::string currentPhase;
 	std::string news = "";
 	std::string next = "";
 	std::ifstream ifile;
@@ -724,7 +774,15 @@ void getAllNews(sf::TcpSocket& client)
 		if (pos == std::string::npos)
 		{
 			// create new news
-			news = "No news is good news*\n";
+			//Get current phase to add to newsfeed
+			std::ifstream infile;
+			infile.open("Settings.txt");
+			infile >> phase;
+			infile.close();
+
+			currentPhase = switchPhase(phase);
+			std::string news = "\033[1;36mCurrent Phase: " + currentPhase + "\033[0m" + "*\n";
+			
 			
 			// write to file
 			std::ofstream ofile;
@@ -760,7 +818,7 @@ void saveNews(sf::Packet& newsPacket)
 
 	// write to the file and close it
 	std::ofstream ofile;
-	ofile.open("newsfeed.txt", std::ios::out);
+	ofile.open("newsfeed.txt", std::ios::out | std::ios::app);
 	ofile << news << std::endl;
 	ofile.close();
 }
